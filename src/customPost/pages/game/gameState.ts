@@ -168,6 +168,14 @@ export class GamePageState {
         this.context.ui.showToast("Share pressed! (Not yet implemented)");
     };
 
+    expandImagePressed = () => {
+        if (!this.image) {
+            console.log("No image to expand!");
+            return;
+        }
+        this.context.ui.navigateTo(this.image);
+    };
+
     onGuessesLoaded = (guesses: BirdNerdGuesses | null, error: Error | null) => {
         if (error) {
             console.error("Failed to load guesses:", error);
