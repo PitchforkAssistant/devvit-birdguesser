@@ -1,6 +1,5 @@
 import {Context, Devvit, Form, FormKey, FormOnSubmitEvent, FormOnSubmitEventHandler} from "@devvit/public-api";
-import {DEFAULTS, ERRORS, HELP_TEXTS, LABELS} from "../constants.js";
-import {CustomPostPreview} from "../customPost/components/preview.js";
+import {BirdNerdPreview} from "../customPost/components/preview.js";
 
 // If you want to dynamically generate the form, use this:
 // const form: FormFunction = (data: Data) => // return form generated from data;
@@ -9,13 +8,13 @@ const form: Form = {
         {
             type: "string",
             name: "title",
-            label: LABELS.CUSTOM_POST_TITLE,
-            helpText: HELP_TEXTS.CUSTOM_POST_TITLE,
+            label: "LABELS.CUSTOM_POST_TITLE",
+            helpText: "HELP_TEXTS.CUSTOM_POST_TITLE",
         },
     ],
-    title: LABELS.FORM,
-    acceptLabel: LABELS.FORM_ACCEPT,
-    cancelLabel: LABELS.FORM_CANCEL,
+    title: "LABELS.FORM",
+    acceptLabel: "LABELS.FORM_ACCEPT",
+    cancelLabel: "LABELS.FORM_CANCEL",
 };
 
 export type CreatePostFormSubmitData = {
@@ -30,9 +29,9 @@ const formHandler: FormOnSubmitEventHandler<CreatePostFormSubmitData> = async (e
     // The logic for creating a custom post.
     const subredditName = (await context.reddit.getCurrentSubreddit()).name;
 
-    const title = DEFAULTS.CUSTOM_POST_TITLE;
+    const title = "DEFAULTS.CUSTOM_POST_TITLE";
     if (!event.values.title) {
-        context.ui.showToast(ERRORS.CUSTOM_POST_TITLE_MISSING);
+        context.ui.showToast("ERRORS.CUSTOM_POST_TITLE_MISSING");
         return;
     }
 
@@ -40,7 +39,7 @@ const formHandler: FormOnSubmitEventHandler<CreatePostFormSubmitData> = async (e
         const newPost = await context.reddit.submitPost({
             title,
             subredditName,
-            preview: CustomPostPreview,
+            preview: BirdNerdPreview,
             textFallback: {text: "The platform you're using doesn't support custom posts. Please use Shreddit or an up to date app to view this post."},
         });
         context.ui.showToast({
@@ -50,7 +49,7 @@ const formHandler: FormOnSubmitEventHandler<CreatePostFormSubmitData> = async (e
         context.ui.navigateTo(newPost);
     } catch (e) {
         console.error("Error creating custom post", e);
-        context.ui.showToast(ERRORS.CUSTOM_POST_FAILED);
+        context.ui.showToast("ERRORS.CUSTOM_POST_FAILED");
     }
 };
 

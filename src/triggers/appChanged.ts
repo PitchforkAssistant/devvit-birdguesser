@@ -1,6 +1,5 @@
 import {AppInstall, AppUpgrade} from "@devvit/protos";
 import {TriggerContext} from "@devvit/public-api";
-import {startSingletonJob} from "devvit-helpers";
 
 /**
  * This function accepts both the "AppInstall" and "AppUpgrade" events.
@@ -10,11 +9,4 @@ import {startSingletonJob} from "devvit-helpers";
 
 export async function onAppChanged (event: AppInstall | AppUpgrade, context: TriggerContext) {
     console.log(`onAppChanged\nevent:\n${JSON.stringify(event)}\ncontext:\n${JSON.stringify(context)}`);
-    try {
-        // This function from devvit-helpers will start a job, but it terminates any other jobs with the same name first.
-        await startSingletonJob(context.scheduler, "someRecurringTask", "*/5 * * * *", {});
-    } catch (e) {
-        console.error("Failed to schedule someRecurringTask job", e);
-        throw e;
-    }
 }

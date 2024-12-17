@@ -1,12 +1,13 @@
 import {Context, Devvit, MenuItemOnPressEvent} from "@devvit/public-api";
-import {createPostForm} from "../main.js";
+import {createGameForm} from "../main.js";
 
 const onPress = async (event: MenuItemOnPressEvent, context: Context) => {
-    context.ui.showForm(createPostForm);
+    context.ui.showForm(createGameForm);
 };
 
-export const customPostButton = Devvit.addMenuItem({
+export const createGameButton = Devvit.addMenuItem({
     location: ["subreddit", "post", "comment"],
-    label: "LABELS.CUSTOM_POST_BUTTON",
+    label: "Create BirdNerd Game",
+    forUserType: "moderator",
     onPress,
 });

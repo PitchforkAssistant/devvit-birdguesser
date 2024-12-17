@@ -1,18 +1,19 @@
-import {ButtonsPage} from "./components/buttons.js";
-import {HelpPage} from "./components/help.js";
-import {HomePage} from "./components/home.js";
+import {HelpPage} from "./pages/help/helpPage.js";
+import {GamePage} from "./pages/game/gamePage.js";
+import {NoGamePage} from "./pages/noGame/noGamePage.js";
+import {GamePageState} from "./pages/game/gameState.js";
 import {CustomPostState} from "./state.js";
 
-export type PageName = "home" | "help" | "buttons";
+export type PageName = "game" | "noGame" | "help";
 
 export type PageList = {
     [key in PageName]: (state: CustomPostState) => JSX.Element;
 };
 
 export const Pages: PageList = {
-    home: HomePage,
+    game: GamePage,
+    noGame: NoGamePage,
     help: HelpPage,
-    buttons: ButtonsPage,
 };
 
 export interface PageProps {
@@ -20,3 +21,13 @@ export interface PageProps {
 }
 
 export const Page = ({state}: PageProps) => Pages[state.currentPage](state);
+
+export const PageStateTypes = {
+    game: GamePageState,
+    noGame: undefined,
+    help: undefined,
+};
+
+export type PageStateList = {
+    [key in PageName]: typeof PageStateTypes[key] extends new (state: CustomPostState) => unknown ? InstanceType<typeof PageStateTypes[key]> : undefined;
+}

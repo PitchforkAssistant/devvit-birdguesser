@@ -1,5 +1,9 @@
-import {Context, UseIntervalResult, UseStateResult} from "@devvit/public-api";
-import {PageName} from "./pages.js";
+import {Context, useAsync, UseAsyncResult, useState, UseStateResult} from "@devvit/public-api";
+import {BasicPostData, BasicUserData} from "../utils/basicData.js";
+import {PageName, PageStateList} from "./pages.js";
+import {isModerator} from "devvit-helpers";
+import {GamePageState} from "./pages/game/gameState.js";
+import {UIDimensions} from "@devvit/protos";
 
 export type SubredditData = {
     name: string;
@@ -14,112 +18,116 @@ export type UserData = {
 export class CustomPostState {
     readonly _currentPage: UseStateResult<PageName>;
 
-    readonly _currentSubData: UseStateResult<SubredditData>;
-    readonly _currentUserData: UseStateResult<UserData>;
+    readonly _currentUserId: UseStateResult<string | null>;
 
-    readonly _counter: UseStateResult<number>;
-    readonly counterUpdater: UseIntervalResult;
+    readonly _currentUser: UseAsyncResult<BasicUserData | null>;
 
-    constructor (public context: Context, startPage: PageName = "home") {
-        this._currentPage = context.useState<PageName>(startPage);
+    readonly _currentPost: UseAsyncResult<BasicPostData | null>;
 
-        this._currentSubData = context.useState<SubredditData>(async () => {
-            const currentSubreddit = await context.reddit.getCurrentSubreddit();
+    readonly _manager: UseAsyncResult<boolean>;
+
+    public PageStates: PageStateList;
+
+    constructor (public context: Context, startPage: PageName = "game") {
+        this._currentPage = useState<PageName>(startPage);
+
+        this._currentUserId = useState<string | null>(context.userId ?? null);
+
+        this._currentUser = useAsync<BasicUserData | null>(async () => {
+            const user = await context.reddit.getCurrentUser();
+            if (user) {
+                const snoovatar = await user.getSnoovatarUrl();
+                return {
+                    username: user.username,
+                    id: user.id,
+                    snoovatar: snoovatar ?? context.assets.getURL("Avatar_Missing.png"),
+                };
+            }
+            return null;
+        }, {depends: [context.userId ?? null]});
+
+        this._currentPost = useAsync<BasicPostData | null>(async () => {
+            if (!context.postId) {
+                return null;
+            }
+            const post = await context.reddit.getPostById(context.postId);
             return {
-                name: currentSubreddit.name,
-                id: currentSubreddit.id,
+                title: post.title,
+                id: post.id,
+                subreddit: {
+                    name: post.subredditName,
+                    id: post.subredditId,
+                },
+                author: {
+                    username: post.authorName ?? "",
+                    id: post.authorId ?? "",
+                },
+                permalink: post.permalink,
+                score: post.score,
             };
-        });
+        }, {depends: [context.postId ?? null]});
 
-        this._currentUserData = context.useState<UserData>(async () => {
-            const currentUser = await context.reddit.getCurrentUser();
-            return {
-                username: currentUser?.username ?? "unknown",
-                id: currentUser?.id ?? "",
-            };
-        });
+        this._manager = useAsync<boolean>(async () => {
+            if (!context.subredditName || !this.currentUser) {
+                return false;
+            }
+            return isModerator(context.reddit, context.subredditName, this.currentUser.username);
+        }, {depends: [this.currentUser]});
 
-        this._counter = context.useState(async () => {
-            const counterNumber = parseInt(await context.redis.get("counter") ?? "0");
-            return counterNumber ? counterNumber : 0; // Convert potential NaN from parseInt("") to 0
-        });
+        // We need to initialize the page states here, otherwise they'll get reset on every page change
+        this.PageStates = {
+            game: new GamePageState(this),
+            noGame: undefined,
+            help: undefined,
+        };
+    }
 
-        this.counterUpdater = context.useInterval(async () => {
-            await this.refreshCounter();
-        }, 1000);
+    get currentPost (): BasicPostData | null {
+        return this._currentPost.data;
+    }
+
+    get isManager (): boolean {
+        return this._manager.data ?? false;
+    }
+
+    get isDebug (): boolean {
+        if (!this.currentPost) {
+            return false;
+        }
+        return this.currentPost.title.includes("debug");
     }
 
     get currentPage (): PageName {
         return this._currentPage[0];
     }
 
+    get uiDims (): UIDimensions {
+        return this.context.uiEnvironment?.dimensions ?? {height: 320, width: 379, scale: 3.5};
+    }
+
+    get reduceSize (): boolean {
+        return this.uiDims.width < 400;
+    }
+
     protected set currentPage (page: PageName) {
         this._currentPage[1](page);
     }
 
-    get subredditName (): string {
-        return this._currentSubData[0].name;
-    }
-
-    get subredditId (): string {
-        return this._currentSubData[0].id;
-    }
-
-    get username (): string {
-        return this._currentUserData[0].username;
-    }
-
-    get userId (): string {
-        return this._currentUserData[0].id;
-    }
-
-    public changePage (page: PageName) {
-        if (page === this.currentPage) {
+    changePage (page: PageName): void {
+        if (this.currentPage === page) {
             return;
         }
-
-        // We only need to update the counter if we're on the buttons page
-        if (page === "buttons") {
-            this.counterUpdater.start();
-        } else if (this.currentPage === "buttons") {
-            this.counterUpdater.stop();
-        }
-
         this.currentPage = page;
     }
 
-    get counter (): number {
-        return this._counter[0];
-    }
-
-    set counter (value: number) {
-        this._counter[1](value);
-    }
-
-    public async refreshCounter () {
-        const counterNumber = parseInt(await this.context.redis.get("counter") ?? "0");
-        this.counter = counterNumber ? counterNumber : 0; // Convert potential NaN from parseInt("") to 0
-    }
-
-    public async incrementCounter (increment: number = 1): Promise<boolean> {
-        const tx = await this.context.redis.watch("counter");
-
-        // We need to get the current counter value, this.counter is only updated once per second.
-        const counterString = await this.context.redis.get("counter");
-        const currentCounter = counterString ? parseInt(counterString) : 0; // Protect against NaN
-
-        const newCounter = currentCounter + increment;
-
-        // tx.exec() will fail if the watched key has been modified since the watch
-        try {
-            await tx.multi();
-            await tx.set("counter", newCounter.toFixed(0));
-            await tx.exec();
-        } catch (e) {
-            console.error(e);
-            return false;
+    get currentUser (): BasicUserData | null {
+        if (this._currentUser.loading) {
+            return null;
         }
-        this.counter = newCounter;
-        return true;
+        return this._currentUser.data;
+    }
+
+    get currentUserId (): string | null {
+        return this._currentUserId[0];
     }
 }
