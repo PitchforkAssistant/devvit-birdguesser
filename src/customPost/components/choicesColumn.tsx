@@ -30,9 +30,9 @@ export const ChoicesColumn = (props: ChoicesColumnProps) => {
         <spacer grow/>
         {columns.map(column => (
             <vstack gap="none" height="100%" alignment="center middle">
-                <spacer grow/>
                 {column.map(choice => (
-                    <vstack alignment="center top" height={`${100 / column.length}%`}>
+                    <vstack alignment="center middle" height={`${100 / column.length}%`}>
+                        <spacer grow/>
                         <zstack onPress={props.disableChoice(choice) ? undefined : () => props.onChoicePress(choice)} alignment="center middle" backgroundColor={getChoiceBackgroundColor(props.selected === choice, props.disableChoice(choice))} cornerRadius="full" padding={props.reduceSize ? "xsmall" : "small"}>
                             <text selectable={false} style="body" color={props.disableChoice(choice) ? "rgba(0,0,0,0.5)" : "#111"} >
                                 {choice}

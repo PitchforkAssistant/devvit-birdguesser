@@ -12,27 +12,28 @@ export const HelpOverlay = (props: HelpOverlayProps) => {
     if (props.direction === "columns") {
         helpElement = (
             <hstack alignment="start top" width="100%" height="100%" grow>
-                <spacer width={"30%"}/>
-                <vstack alignment="center top" padding="medium">
+                <spacer width={"25%"} maxWidth={"25%"} grow/>
+                <vstack alignment="center top" padding="medium" maxWidth={"70%"} grow>
                     <text style="heading" color="white" alignment="center middle" size="large">Bird Nerd</text>
-                    <text style="body" color="white" size="medium" alignment="center middle" maxWidth={props.imageWidth} wrap>You are presented with a photo of a bird. Your goal is to guess its name.</text>
+                    <text style="body" color="white" size="medium" alignment="center middle" wrap>You are presented with a photo of a bird. Your goal is to guess its name.</text>
                     <spacer height={props.imageHeight}/>
-                    <text style="body" color="white" size="medium" alignment="center middle" maxWidth={props.imageWidth} wrap>This is where you input your guess. Select a choice from the left and then click on one of the answer slots.</text>
+                    <text style="body" color="white" size="medium" alignment="center middle" wrap>This is where you input your guess. Select a choice from the left and then click on one of the answer slots.</text>
                     <spacer grow minHeight={"80px"}/>
-                    <text style="body" color="white" size="medium" alignment="center middle" maxWidth={props.imageWidth} wrap>The fields on the bottom show the guesses you've already made, starting with the most recent guess at the top and oldest at the bottom. Rows without any guesses at the bottom indicate the number of tries you have left.</text>
+                    <text style="body" color="white" size="medium" alignment="center middle" wrap>The fields on the bottom show the guesses you've already made, starting with the most recent guess at the top and oldest at the bottom. Rows without any guesses at the bottom indicate the number of tries you have left.</text>
                 </vstack>
                 <spacer grow/>
             </hstack>
         );
-    } else {
+    } else if (props.direction === "rows") {
         helpElement = (
             <vstack alignment="center top" padding="medium">
                 <text style="heading" alignment="center middle" size="large">Bird Nerd</text>
-                <text style="body" color="white" size="medium" alignment="center middle" maxWidth={props.imageWidth} wrap>You are presented with a photo of a bird. Your goal is to guess its name.</text>
+                <text style="body" color="white" size="medium" alignment="center middle" wrap>You are presented with a photo of a bird. Your goal is to guess its name.</text>
                 <spacer height={props.imageHeight}/>
-                <text style="body" color="white" size="medium" alignment="center middle" maxWidth={props.imageWidth} wrap>This is where you input your guess. Select a choice from the provided words and then click on one of the answer slots.</text>
-                <spacer grow minHeight={"80px"}/>
-                <text style="body" color="white" size="medium" alignment="center middle" maxWidth={props.imageWidth} wrap>The fields on the bottom show the guesses you've already made, starting with the most recent guess at the top and oldest at the bottom. Rows without any guesses at the bottom indicate the number of tries you have left.</text>
+                <text style="body" color="white" size="medium" alignment="center middle" wrap>This is where you input your guess. Select a choice from the provided words and then click on one of the answer slots.</text>
+                <spacer grow minHeight={"50px"}/>
+                <text style="body" color="white" size="medium" alignment="center middle" wrap>The fields on the bottom show the guesses you've already made, starting with the most recent guess at the top and oldest at the bottom. Rows without any guesses at the bottom indicate the number of tries you have left.</text>
+                <spacer grow/>
             </vstack>
         );
     }

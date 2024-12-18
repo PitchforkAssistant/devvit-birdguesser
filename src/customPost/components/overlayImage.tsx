@@ -1,14 +1,13 @@
 import {Devvit} from "@devvit/public-api";
 
 export type OverlayImageProps = {
-    onImagePress: () => void | Promise<void>
     onAttributionPress?: () => void | Promise<void>
 } & Devvit.Blocks.ImageProps & Devvit.Blocks.TextProps & Devvit.Blocks.HasStringChildren;
 
 export const OverlayImage = (props: OverlayImageProps) => (
     <zstack height="100%" width="100%" grow>
         <vstack alignment="start top" height="100%" width="100%" grow>
-            <image {...props} onPress={props.onImagePress} />
+            <image {...props} />
             <spacer size="large" grow/>
         </vstack>
         <vstack alignment="end bottom" padding="none" height="100%" width="100%">

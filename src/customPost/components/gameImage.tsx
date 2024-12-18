@@ -25,13 +25,15 @@ export const GameImage = (props: GameImageProps) => (
             <vstack height={props.imageHeight} alignment="end bottom" padding="none" width="100%">
                 <hstack padding="none" alignment="end bottom" width="100%">
                     {props.children ? (
-                        <hstack darkBackgroundColor="rgba(0, 0, 0, 0.5)" lightBackgroundColor="rgba(255, 255, 255, 0.5)" cornerRadius="full" padding="none">
-                            <spacer size="xsmall"/>
-                            <text {...props} selectable={false} onPress={props.onAttributionPress}>
-                                {props.children}
-                            </text>
-                            <spacer size="xsmall"/>
-                        </hstack>
+                        <vstack padding="xsmall">
+                            <hstack darkBackgroundColor="rgba(0, 0, 0, 0.5)" lightBackgroundColor="rgba(255, 255, 255, 0.5)" cornerRadius="full" padding="none">
+                                <spacer size="xsmall"/>
+                                <text {...props} selectable={false} onPress={props.onAttributionPress}>
+                                    {props.children}
+                                </text>
+                                <spacer size="xsmall"/>
+                            </hstack>
+                        </vstack>
                     ) : null}
                     <spacer grow/>
                 </hstack>

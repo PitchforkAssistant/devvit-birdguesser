@@ -283,10 +283,11 @@ export class GamePageState {
             return;
         }
 
-        await this.context.reddit.submitComment({
+        const comment = await this.context.reddit.submitComment({
             id: this.postState.currentPost.id,
             text: data.comment,
         });
+        this.context.ui.navigateTo(comment);
     };
 
     expandImagePressed = () => {
