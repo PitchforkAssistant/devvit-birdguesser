@@ -5,8 +5,6 @@ Devvit.configure({
     redditAPI: true,
     redis: true,
     media: true,
-    http: true,
-    kvStore: true,
     realtime: true,
 });
 
