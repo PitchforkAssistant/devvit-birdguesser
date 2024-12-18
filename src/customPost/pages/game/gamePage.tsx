@@ -63,9 +63,11 @@ export const GamePage = (postState: CustomPostState) => {
                 <spacer grow/>
                 <hstack padding="medium" alignment="center middle" minWidth="100%">
                     <spacer grow/>
-                    <vstack backgroundColor={game.overlay === "none" ? "rgba(255, 255, 255, 0.2)" : "#dce1ce"} cornerRadius="full" padding="small" onPress={game.overlay === "none" ? () => game.changeOverlay("help") : () => game.changeOverlay("none")}>
-                        <icon name={game.overlay === "none" ? "help" : "close-fill"} size="small" color="#111"/>
-                    </vstack>
+                    {(game.overlay !== "none" || !game.finished) &&
+                        <vstack backgroundColor={game.overlay === "none" ? "rgba(255, 255, 255, 0.2)" : "#dce1ce"} cornerRadius="full" padding="small" onPress={game.overlay === "none" ? () => game.changeOverlay("help") : () => game.changeOverlay("none")}>
+                            <icon name={game.overlay === "none" ? "help" : "close-fill"} size="small" color="#111"/>
+                        </vstack>
+                    }
                 </hstack>
             </vstack>
         </zstack>
