@@ -27,6 +27,7 @@ export type BirdNerdGuessResult = "correct" | "incorrect" | "contains";
 export type BirdNerdImage = {
     url: string;
     attribution?: string;
+    attributionUrl?: string;
     aspectRatio?: number;
 }
 
@@ -96,7 +97,8 @@ export function isBirdNerdImage (object: unknown): object is BirdNerdImage {
     const image = object as BirdNerdImage;
     return typeof image.url === "string"
         && (!image.attribution || typeof image.attribution === "string")
-        && (!image.aspectRatio || typeof image.aspectRatio === "number");
+        && (!image.aspectRatio || typeof image.aspectRatio === "number")
+        && (!image.attributionUrl || typeof image.attributionUrl === "string");
 }
 
 export function isBirdNerdGame (object: unknown): object is BirdNerdGame {

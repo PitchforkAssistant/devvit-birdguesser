@@ -9,6 +9,7 @@ type CreateGameFormSubmitData = {
     description?: string;
     image?: string;
     imageAttribution?: string;
+    imageAttributionUrl?: string;
     imageAspectRatio?: number;
     answer?: string;
     choices?: string;
@@ -40,6 +41,14 @@ const form: FormFunction<CreateGameFormData> = (data: CreateGameFormData): Form 
                         required: true,
                     },
                     {
+                        type: "number",
+                        name: "imageAspectRatio",
+                        label: "Image Aspect Ratio",
+                        helpText: "This is the aspect ratio of the image. For example if you set it to 1, the image will be a square. If you set it to 2, the image width will be twice the height.",
+                        defaultValue: data.defaultValues?.imageAspectRatio ?? 2,
+                        required: true,
+                    },
+                    {
                         type: "string",
                         name: "imageAttribution",
                         label: "Image Attribution",
@@ -47,12 +56,11 @@ const form: FormFunction<CreateGameFormData> = (data: CreateGameFormData): Form 
                         defaultValue: data.defaultValues?.imageAttribution,
                     },
                     {
-                        type: "number",
-                        name: "imageAspectRatio",
-                        label: "Image Aspect Ratio",
-                        helpText: "This is the aspect ratio of the image. For example if you set it to 1, the image will be a square. If you set it to 2, the image width will be twice the height.",
-                        defaultValue: data.defaultValues?.imageAspectRatio ?? 2,
-                        required: true,
+                        type: "string",
+                        name: "imageAttributionUrl",
+                        label: "Image Attribution URL",
+                        helpText: "If provided, clicking on the attribution text will navigate players to this URL.",
+                        defaultValue: data.defaultValues?.imageAttributionUrl,
                     },
                 ],
             },
@@ -159,7 +167,7 @@ const formHandler: FormOnSubmitEventHandler<CreateGameFormSubmitData> = async (e
         const birdNerdGame: BirdNerdGame = {
             id: Math.random().toString(36).substring(2),
             name: values.name,
-            images: [{url: values.image, attribution: values.imageAttribution, aspectRatio: values.imageAspectRatio}],
+            images: [{url: values.image, attribution: values.imageAttribution, attributionUrl: values.imageAttributionUrl, aspectRatio: values.imageAspectRatio}],
             answer: stringToBirdNerdWords(values.answer),
             choices: values.choices.split(",").map(choice => choice.trim()),
             chances: values.chances,

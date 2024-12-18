@@ -1,12 +1,14 @@
 import {UIDimensions} from "@devvit/protos";
 import {Devvit} from "@devvit/public-api";
 import {stringsToRowsSplitter} from "../../utils/string.js";
+import {getChoiceBackgroundColor} from "./choicesColumn.js";
 
 export type ChoicesRowProps = {
     choices: string[];
     selected: string | null;
     uiDims?: UIDimensions;
     reduceSize?: boolean;
+    disableChoice: (word: string) => boolean;
     onChoicePress: (choice: string) => void;
 };
 
@@ -15,13 +17,15 @@ export const ChoicesRow = (props: ChoicesRowProps) => {
     const lettersPerRow = Math.floor(width / (props.reduceSize ? 8 : 10));
     const rows: string[][] = stringsToRowsSplitter(props.choices, "   ", lettersPerRow);
 
-    return (<vstack gap="small" alignment="center middle">
+    return (<vstack gap="small" border="thick" borderColor="rgba(255, 255, 255, 0.2)" backgroundColor="rgba(255, 255, 255, 0.2)" cornerRadius="medium" alignment="center middle">
         {rows.map(row => (
             <hstack gap="small" alignment="center middle">
                 {row.map(choice => (
-                    <button key={choice} onPress={() => props.onChoicePress(choice)} appearance={props.selected === choice ? "primary" : "plain"} size={props.reduceSize ? "small" : "large"}>
-                        {choice}
-                    </button>
+                    <zstack onPress={props.disableChoice(choice) ? undefined : () => props.onChoicePress(choice)} alignment="center middle" backgroundColor={getChoiceBackgroundColor(props.selected === choice, props.disableChoice(choice))} cornerRadius="full" padding={props.reduceSize ? "xsmall" : "small"}>
+                        <text selectable={false} style="body" color={props.disableChoice(choice) ? "rgba(0,0,0,0.5)" : "#111"} >
+                            {choice}
+                        </text>
+                    </zstack>
                 ))}
             </hstack>
         ))}

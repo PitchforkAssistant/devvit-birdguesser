@@ -10,7 +10,7 @@ export const customPostExample = Devvit.addCustomPostType({
         const state = new CustomPostState(context);
         return (
             <blocks height="tall">
-                <zstack alignment="center top" width="100%" height="100%">
+                <zstack alignment="center top" width="100%" height="100%" backgroundColor="#D3DAC2">
                     <vstack alignment="center middle" grow height="100%" width="100%">
                         <Page state={state} />
                     </vstack>
@@ -18,7 +18,9 @@ export const customPostExample = Devvit.addCustomPostType({
                         <hstack padding="medium" alignment="center middle" minWidth="100%">
                             <spacer grow/>
                             {state.isModerator && state.currentPage === "game" &&
-                                <button icon="settings" size="small" appearance="plain" onPress={() => state.changePage("manager")}/>
+                                <vstack backgroundColor="#dce1ce" cornerRadius="full" padding="small" onPress={() => state.changePage("manager")}>
+                                    <icon name="settings" size="small" color="#111"/>
+                                </vstack>
                             }
                         </hstack>
                     </vstack>

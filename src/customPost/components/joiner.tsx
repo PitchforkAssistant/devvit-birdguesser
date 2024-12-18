@@ -11,7 +11,7 @@ export const Joiner = (props: JoinerProps) => {
     case "space":
         return <spacer size={props.reduceSize ? "small" : "medium"}/>;
     case "hyphen":
-        return <text selectable={false} style="body" size={props.reduceSize ? "medium" : "large"} alignment="center top" weight="bold">-</text>;
+        return <text color="#111" selectable={false} style="body" size={props.reduceSize ? "medium" : "large"} alignment="center top" weight="bold">-</text>;
     case "none":
         return null;
     default:

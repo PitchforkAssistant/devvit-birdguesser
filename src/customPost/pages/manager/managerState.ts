@@ -75,7 +75,7 @@ export class ManagerPageState {
             await this.gameState.sendToChannel({type: "refresh", data: Date.now()});
         } catch (e) {
             this.context.ui.showToast(`Failed to update game: ${String(e)}`);
-            this.context.ui.showForm(this.editRawGameFormKey, {defaultValues: {rawVote: rawGameString}});
+            this.context.ui.showForm(this.editRawGameFormKey, {defaultValues: {rawGame: rawGameString}});
         }
     };
 

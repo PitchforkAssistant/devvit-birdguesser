@@ -1,10 +1,11 @@
-import {Context, useAsync, UseAsyncResult, useChannel, UseChannelResult, useState, UseStateResult} from "@devvit/public-api";
+import {Context, FormKey, useAsync, UseAsyncResult, useChannel, UseChannelResult, useForm, useState, UseStateResult} from "@devvit/public-api";
 
 import {CustomPostState} from "../../state.js";
-import {BirdNerdAnswerShape, BirdNerdGamePartial, BirdNerdGuess, BirdNerdGuesses, defaultChances, getBirdNerdGuesses, getPostGame} from "../../../utils/birdNerd.js";
+import {BirdNerdAnswerShape, BirdNerdGamePartial, BirdNerdGuess, BirdNerdGuesses, BirdNerdGuessResult, defaultChances, getBirdNerdGuesses, getPostGame} from "../../../utils/birdNerd.js";
 import {getBirdNerdGamePartial, makeBirdNerdGuess} from "../../../server/birdNerd.server.js";
 import {max} from "lodash";
 import {ChannelStatus} from "@devvit/public-api/types/realtime.js";
+import {shareForm, ShareFormSubmitData} from "../../../forms/shareForm.js";
 
 export const gameChannelName = "birdNerdGame";
 
@@ -15,6 +16,8 @@ export type GameChannelPacket = {
     data: number;
 })
 
+export type GameOverlay = "none" | "image" | "help";
+
 export class GamePageState {
     public context: Context;
 
@@ -22,6 +25,9 @@ export class GamePageState {
     readonly _selected: UseStateResult<string | null>;
     readonly _currentGuess: UseStateResult<string[]>;
     readonly _reload: UseStateResult<number>;
+    readonly _overlay: UseStateResult<GameOverlay>;
+
+    readonly _shareFormKey: FormKey;
 
     readonly _currentGameId: UseAsyncResult<string | null>;
     readonly _currentPartialGame: UseAsyncResult<BirdNerdGamePartial | null>;
@@ -36,6 +42,9 @@ export class GamePageState {
         this._selected = useState<string | null>(null);
         this._currentGuess = useState<string[]>([]);
         this._reload = useState<number>(0);
+        this._overlay = useState<GameOverlay>("none");
+
+        this._shareFormKey = useForm(shareForm, this.shareSubmit);
 
         this._currentGameId = useAsync<string | null>(async () => {
             if (!this.context.postId) {
@@ -110,12 +119,31 @@ export class GamePageState {
         this._reload[1](value + 1);
     }
 
+    get overlay (): GameOverlay {
+        return this._overlay[0];
+    }
+
+    protected set overlay (value: GameOverlay) {
+        this._overlay[1](value);
+    }
+
+    changeOverlay (overlay: GameOverlay): void {
+        if (this.overlay === overlay) {
+            return;
+        }
+        this.overlay = overlay;
+    }
+
     get image (): string | null {
         return this._currentPartialGame.data?.images[0]?.url ?? null;
     }
 
     get imageAttribution (): string | null {
         return this._currentPartialGame.data?.images[0]?.attribution ?? null;
+    }
+
+    get imageAttributionUrl (): string | null {
+        return this._currentPartialGame.data?.images[0]?.attributionUrl ?? null;
     }
 
     get imageAspectRatio (): number {
@@ -141,6 +169,34 @@ export class GamePageState {
     get finished (): boolean {
         return this.guesses.length >= (this.chances ?? 0) || this.guesses.some(guess => guess.every(word => word.result === "correct"));
     }
+
+    get won (): boolean {
+        return this.guesses.some(guess => guess.every(word => word.result === "correct"));
+    }
+
+    // Use previous guess results to determine which word can't be in the answer, account for duplicate words
+    notInAnswer = (word: string) => {
+        if (!this.guesses.length) {
+            return false;
+        }
+        const notInAnswer: boolean[] = [];
+        for (const guess of this.guesses) {
+            let excludedByGuess = false;
+            for (const guessedWord of guess) {
+                if (guessedWord.word === word) {
+                    if (guessedWord.result !== "incorrect") {
+                        excludedByGuess = false;
+                        break;
+                    } else {
+                        excludedByGuess = true;
+                    }
+                }
+            }
+            notInAnswer.push(excludedByGuess);
+        }
+
+        return notInAnswer.some(excluded => excluded);
+    };
 
     appendGuess = (guess: BirdNerdGuess) => {
         this.guesses = [...this.guesses, guess];
@@ -198,8 +254,39 @@ export class GamePageState {
         }
     };
 
-    sharePressed = () => {
-        this.context.ui.showToast("Share pressed! (Not yet implemented)");
+    sharePressed = async () => {
+        if (!this.currentGameId) {
+            console.warn("No game to share!");
+            this.context.ui.showToast("ERROR: Current game not loaded!");
+            return;
+        }
+
+        const emojiMap: Record<BirdNerdGuessResult, string> = {
+            correct: "🟩",
+            incorrect: "🟥",
+            contains: "🟨",
+        };
+        const guessesText = this.guesses.map(guess => `${guess.map(word => `${emojiMap[word.result]}`).join("")}`).reverse().join("  \n");
+        this.context.ui.showForm(this._shareFormKey, {defaultValues: {comment: this.won ? `I got it in ${this.guesses.length}!\n\n${guessesText}` : `I didn't get it!\n\n&nbsp;\n\n${guessesText}`}});
+    };
+
+    shareSubmit = async (data: ShareFormSubmitData) => {
+        if (!this.postState.currentPost) {
+            console.warn("No post to share on!");
+            this.context.ui.showToast("ERROR: Current post not loaded!");
+            return;
+        }
+
+        if (!data.comment) {
+            console.warn("No comment to share!");
+            this.context.ui.showToast("ERROR: Share comment blank!");
+            return;
+        }
+
+        await this.context.reddit.submitComment({
+            id: this.postState.currentPost.id,
+            text: data.comment,
+        });
     };
 
     expandImagePressed = () => {
@@ -207,7 +294,22 @@ export class GamePageState {
             console.log("No image to expand!");
             return;
         }
+        this.overlay = "image";
+    };
+
+    openImagePressed = () => {
+        if (!this.image) {
+            console.log("No image to open!");
+            return;
+        }
         this.context.ui.navigateTo(this.image);
+    };
+
+    attributionPressed = () => {
+        if (!this.imageAttributionUrl) {
+            return;
+        }
+        this.context.ui.navigateTo(this.imageAttributionUrl);
     };
 
     onGuessesLoaded = (guesses: BirdNerdGuesses | null, error: Error | null) => {

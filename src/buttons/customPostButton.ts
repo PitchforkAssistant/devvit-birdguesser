@@ -7,6 +7,7 @@ const onPress = async (event: MenuItemOnPressEvent, context: Context) => {
 
 export const customPostButton = Devvit.addMenuItem({
     location: ["subreddit", "post", "comment"],
-    label: "LABELS.CUSTOM_POST_BUTTON",
+    label: "Not Implemented",
+    forUserType: "moderator",
     onPress,
 });
