@@ -4,6 +4,7 @@ import {PageName, PageStateList} from "./pages.js";
 import {isModerator} from "devvit-helpers";
 import {GamePageState} from "./pages/game/gameState.js";
 import {UIDimensions} from "@devvit/protos";
+import {ManagerPageState} from "./pages/manager/managerState.js";
 
 export type SubredditData = {
     name: string;
@@ -77,6 +78,7 @@ export class CustomPostState {
         // We need to initialize the page states here, otherwise they'll get reset on every page change
         this.PageStates = {
             game: new GamePageState(this),
+            manager: new ManagerPageState(this),
             noGame: undefined,
             help: undefined,
         };
@@ -86,7 +88,7 @@ export class CustomPostState {
         return this._currentPost.data;
     }
 
-    get isManager (): boolean {
+    get isModerator (): boolean {
         return this._manager.data ?? false;
     }
 

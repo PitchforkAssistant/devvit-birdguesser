@@ -2,6 +2,10 @@ import {RedisClient} from "@devvit/public-api";
 
 export const defaultChances = 4;
 
+export const gamesKey = "birdNerdGames";
+export const guessesKeyPrefix = "birdNerdGuesses:";
+export const postsKey = "birdNerdPosts";
+
 export type BirdNerdJoiner = "space" | "hyphen" | "none";
 
 /**
@@ -192,11 +196,11 @@ export function birdNerdWordsToString (words: BirdNerdWord[]): string {
 }
 
 export async function setBirdNerdGame (redis: RedisClient, game: BirdNerdGame): Promise<void> {
-    await redis.hSet("birdNerdGames", {[game.id]: JSON.stringify(game)});
+    await redis.hSet(gamesKey, {[game.id]: JSON.stringify(game)});
 }
 
 export async function getBirdNerdGame (redis: RedisClient, id: string): Promise<BirdNerdGame | null> {
-    const rawGame = await redis.hGet("birdNerdGames", id);
+    const rawGame = await redis.hGet(gamesKey, id);
     if (!rawGame) {
         return null;
     }
@@ -205,28 +209,36 @@ export async function getBirdNerdGame (redis: RedisClient, id: string): Promise<
 }
 
 export async function getAllBirdNerdGames (redis: RedisClient): Promise<BirdNerdGame[]> {
-    const rawGames = await redis.hGetAll("birdNerdGames");
+    const rawGames = await redis.hGetAll(gamesKey);
     return Object.values(rawGames).map((game): unknown => JSON.parse(game)).filter(isBirdNerdGame);
 }
 
 export async function setPostGame (redis: RedisClient, postId: string, voteId: string): Promise<void> {
-    await redis.hSet("birdNerdPosts", {[postId]: voteId});
+    await redis.hSet(postsKey, {[postId]: voteId});
 }
 
 export async function getPostGame (redis: RedisClient, postId: string): Promise<string | null> {
-    const gameId = await redis.hGet("birdNerdPosts", postId);
+    const gameId = await redis.hGet(postsKey, postId);
     return gameId ?? null;
 }
 
 export async function storeBirdNerdGuesses (redis: RedisClient, gameId: string, userId: string, guesses: BirdNerdGuesses): Promise<void> {
-    await redis.hSet(`birdNerdGuesses:${gameId}`, {[userId]: JSON.stringify(guesses)});
+    await redis.hSet(`${guessesKeyPrefix}:${gameId}`, {[userId]: JSON.stringify(guesses)});
 }
 
 export async function getBirdNerdGuesses (redis: RedisClient, gameId: string, userId: string): Promise<BirdNerdGuesses | null> {
-    const rawGuesses = await redis.hGet(`birdNerdGuesses:${gameId}`, userId);
+    const rawGuesses = await redis.hGet(`${guessesKeyPrefix}:${gameId}`, userId);
     if (!rawGuesses) {
         return null;
     }
     const guesses: unknown = JSON.parse(rawGuesses);
     return isBirdNerdGuesses(guesses) ? guesses : null;
+}
+
+export async function resetBirdNerdGuesses (redis: RedisClient, gameId: string, userId?: string[]): Promise<void> {
+    if (userId) {
+        await redis.hDel(`${guessesKeyPrefix}:${gameId}`, userId);
+    } else {
+        await redis.del(`${guessesKeyPrefix}:${gameId}`);
+    }
 }

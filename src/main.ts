@@ -31,10 +31,10 @@ export {customPostButton} from "./buttons/customPostButton.js";
 export {customPostExample} from "./customPost/index.js";
 
 // Scheduler jobs
+export {previewUpdaterJob} from "./scheduler/previewUpdaterJob.js";
 
 // Triggers
 export {appInstallTrigger} from "./triggers/appInstall.js";
 export {appUpgradeTrigger} from "./triggers/appUpgrade.js";
-export {postCreateTrigger} from "./triggers/postCreate.js";
 
 export default Devvit;

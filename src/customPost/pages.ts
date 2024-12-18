@@ -3,8 +3,10 @@ import {GamePage} from "./pages/game/gamePage.js";
 import {NoGamePage} from "./pages/noGame/noGamePage.js";
 import {GamePageState} from "./pages/game/gameState.js";
 import {CustomPostState} from "./state.js";
+import {ManagerPage} from "./pages/manager/managerPage.js";
+import {ManagerPageState} from "./pages/manager/managerState.js";
 
-export type PageName = "game" | "noGame" | "help";
+export type PageName = "game" | "noGame" | "help" | "manager";
 
 export type PageList = {
     [key in PageName]: (state: CustomPostState) => JSX.Element;
@@ -14,6 +16,7 @@ export const Pages: PageList = {
     game: GamePage,
     noGame: NoGamePage,
     help: HelpPage,
+    manager: ManagerPage,
 };
 
 export interface PageProps {
@@ -24,6 +27,7 @@ export const Page = ({state}: PageProps) => Pages[state.currentPage](state);
 
 export const PageStateTypes = {
     game: GamePageState,
+    manager: ManagerPageState,
     noGame: undefined,
     help: undefined,
 };

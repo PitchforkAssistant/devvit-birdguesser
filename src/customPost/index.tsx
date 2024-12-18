@@ -8,12 +8,19 @@ export const customPostExample = Devvit.addCustomPostType({
     height: "tall",
     render: context => {
         const state = new CustomPostState(context);
-        console.log(context.uiEnvironment);
         return (
-            <blocks>
+            <blocks height="tall">
                 <zstack alignment="center top" width="100%" height="100%">
                     <vstack alignment="center middle" grow height="100%" width="100%">
                         <Page state={state} />
+                    </vstack>
+                    <vstack alignment="center top" width="100%" height="100%">
+                        <hstack padding="medium" alignment="center middle" minWidth="100%">
+                            <spacer grow/>
+                            {state.isModerator && state.currentPage === "game" &&
+                                <button icon="settings" size="small" appearance="plain" onPress={() => state.changePage("manager")}/>
+                            }
+                        </hstack>
                     </vstack>
                 </zstack>
             </blocks>
