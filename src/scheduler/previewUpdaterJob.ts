@@ -1,5 +1,9 @@
 import {TriggerContext, ScheduledJobEvent, Devvit} from "@devvit/public-api";
-import {getQueuedPreviews} from "../utils/previews.js";
+import {getQueuedPreviews, unqueuePreview} from "../utils/previews.js";
+import {getBirdNerdGamePartial} from "../server/birdNerd.server.js";
+import {getPostGame} from "../utils/birdNerd.js";
+import {BasicPreview} from "../customPost/components/preview.js";
+import {advancedPreviewMaker} from "../customPost/components/advancedPreview.js";
 
 export async function onPreviewUpdaterJob (event: ScheduledJobEvent<undefined>, context: TriggerContext) {
     console.log(`onPreviewUpdaterJob\nevent:\n${JSON.stringify(event)}\ncontext:\n${JSON.stringify(context)}`);
@@ -7,7 +11,30 @@ export async function onPreviewUpdaterJob (event: ScheduledJobEvent<undefined>, 
 
     for (const postId of postIds) {
         try {
-            throw new Error("Not implemented");
+            const post = await context.reddit.getPostById(postId);
+
+            const gameId = await getPostGame(context.redis, post.id);
+            if (!gameId) {
+                await post.setCustomPostPreview(() => BasicPreview);
+                return;
+            }
+
+            const partialGame = await getBirdNerdGamePartial(context.redis, gameId);
+            if (!partialGame) {
+                await post.setCustomPostPreview(() => BasicPreview);
+                return;
+            }
+
+            if (!partialGame) {
+                await post.setCustomPostPreview(() => BasicPreview);
+            } else {
+                await post.setCustomPostPreview(() => advancedPreviewMaker({
+                    partialGame,
+                    uiDims: {width: 512, height: 512, scale: 3.5},
+                }));
+            }
+            console.log(`Updated preview for post ${postId}`);
+            await unqueuePreview(context.redis, postId);
         } catch (e) {
             console.error(`Error updating preview for post ${postId}: ${String(e)}`);
         }

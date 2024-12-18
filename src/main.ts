@@ -23,7 +23,7 @@ export {createPostForm} from "./forms/createPostForm.js";
 
 // Buttons
 export {createGameButton} from "./buttons/createGameButton.js";
-export {customPostButton} from "./buttons/customPostButton.js";
+// export {customPostButton} from "./buttons/customPostButton.js";
 
 // Custom Post
 export {customPostExample} from "./customPost/index.js";

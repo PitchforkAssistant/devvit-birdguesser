@@ -1,5 +1,6 @@
 import {Context, Devvit, Form, FormKey, FormOnSubmitEvent, FormOnSubmitEventHandler} from "@devvit/public-api";
-import {BirdNerdPreview} from "../customPost/components/preview.js";
+import {BasicPreview} from "../customPost/components/preview.js";
+import {queuePreview} from "../utils/previews.js";
 
 // If you want to dynamically generate the form, use this:
 // const form: FormFunction = (data: Data) => // return form generated from data;
@@ -39,7 +40,7 @@ const formHandler: FormOnSubmitEventHandler<CreatePostFormSubmitData> = async (e
         const newPost = await context.reddit.submitPost({
             title,
             subredditName,
-            preview: BirdNerdPreview,
+            preview: BasicPreview,
             textFallback: {text: "The platform you're using doesn't support custom posts. Please use Shreddit or an up to date app to view this post."},
         });
         context.ui.showToast({
@@ -47,6 +48,7 @@ const formHandler: FormOnSubmitEventHandler<CreatePostFormSubmitData> = async (e
             appearance: "success",
         });
         context.ui.navigateTo(newPost);
+        await queuePreview(context.redis, newPost.id);
     } catch (e) {
         console.error("Error creating custom post", e);
         context.ui.showToast("ERRORS.CUSTOM_POST_FAILED");

@@ -1,7 +1,8 @@
 import {Context, Devvit, Form, FormFunction, FormKey, FormOnSubmitEvent, FormOnSubmitEventHandler} from "@devvit/public-api";
 import {createGameForm as createGameFormKey} from "../main.js";
 import {BirdNerdGame, setBirdNerdGame, setPostGame, stringToBirdNerdWords} from "../utils/birdNerd.js";
-import {BirdNerdPreview} from "../customPost/components/preview.js";
+import {BasicPreview} from "../customPost/components/preview.js";
+import {queuePreview} from "../utils/previews.js";
 
 type CreateGameFormSubmitData = {
     name?: string;
@@ -188,10 +189,11 @@ const formHandler: FormOnSubmitEventHandler<CreateGameFormSubmitData> = async (e
                 subredditName: context.subredditName,
                 title: postTitle,
                 textFallback: {text: "The platform you're using doesn't support custom posts. Please use Shreddit or an up to date app to view this post."},
-                preview: BirdNerdPreview,
+                preview: BasicPreview,
             });
             await setPostGame(context.redis, post.id, birdNerdGame.id);
             context.ui.showToast("Game posted!");
+            await queuePreview(context.redis, post.id);
             context.ui.navigateTo(post);
         }
     }
