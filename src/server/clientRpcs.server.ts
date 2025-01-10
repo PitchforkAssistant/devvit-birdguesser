@@ -21,6 +21,7 @@ export async function getBirdNerdGamePartial (redis: RedisClient, gameId: string
         images: fullGame.images,
         choices: shuffle([...fullGame.choices.map(word => word.toLowerCase()), ...fullGame.answer.map(word => word.word.toLowerCase())]),
         answerShape: fullGame.answer.map(word => ({joiner: word.joiner})),
+        chances: fullGame.chances,
     };
 }
 
