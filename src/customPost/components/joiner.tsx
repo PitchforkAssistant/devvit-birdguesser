@@ -1,5 +1,5 @@
 import {Devvit} from "@devvit/public-api";
-import {BirdNerdJoiner} from "../../utils/birdNerd.js";
+import {BirdNerdJoiner} from "../../types/birdNerd/joiner.js";
 
 export type JoinerProps = {
     joiner: BirdNerdJoiner;

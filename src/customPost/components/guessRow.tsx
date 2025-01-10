@@ -1,5 +1,7 @@
 import {Devvit} from "@devvit/public-api";
-import {BirdNerdAnswerShape, BirdNerdGuess, BirdNerdGuessedWord, BirdNerdGuesses, BirdNerdGuessResult} from "../../utils/birdNerd.js";
+import {BirdNerdAnswerShape} from "../../types/birdNerd/partialGame.js";
+import {BirdNerdGuessResult} from "../../types/birdNerd/guess.js";
+import {BirdNerdGuess, BirdNerdGuessedWord, BirdNerdGuesses} from "../../types/birdNerd/guess.js";
 import {Joiner} from "./joiner.js";
 
 export type GuessRowProps = {

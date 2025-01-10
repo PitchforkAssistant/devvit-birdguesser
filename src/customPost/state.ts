@@ -1,10 +1,11 @@
 import {Context, useAsync, UseAsyncResult, useState, UseStateResult} from "@devvit/public-api";
-import {BasicPostData, BasicUserData} from "../utils/basicData.js";
+import {BasicPostData, BasicUserData} from "../types/basicData.js";
 import {PageName, PageStateList} from "./pages.js";
 import {isModerator} from "devvit-helpers";
 import {GamePageState} from "./pages/game/gameState.js";
 import {UIDimensions} from "@devvit/protos";
 import {ManagerPageState} from "./pages/manager/managerState.js";
+import {AppSettings, getAppSettings} from "../settings.js";
 
 export type SubredditData = {
     name: string;
@@ -24,6 +25,8 @@ export class CustomPostState {
     readonly _currentUser: UseAsyncResult<BasicUserData | null>;
 
     readonly _currentPost: UseAsyncResult<BasicPostData | null>;
+
+    readonly _appSettings: UseAsyncResult<AppSettings>;
 
     readonly _manager: UseAsyncResult<boolean>;
 
@@ -68,6 +71,8 @@ export class CustomPostState {
             };
         }, {depends: [context.postId ?? null]});
 
+        this._appSettings = useAsync<AppSettings>(async () => getAppSettings(context.settings), {depends: []});
+
         this._manager = useAsync<boolean>(async () => {
             if (!context.subredditName || !this.currentUser) {
                 return false;
@@ -86,6 +91,10 @@ export class CustomPostState {
 
     get currentPost (): BasicPostData | null {
         return this._currentPost.data;
+    }
+
+    get appSettings (): AppSettings | null {
+        return this._appSettings.data;
     }
 
     get isModerator (): boolean {

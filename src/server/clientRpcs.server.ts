@@ -1,6 +1,14 @@
-import {RedisClient} from "@devvit/public-api";
-import {BirdNerdGamePartial, BirdNerdGuess, BirdNerdGuessedWord, defaultChances, getBirdNerdGame, getBirdNerdGuesses, storeBirdNerdGuesses} from "../utils/birdNerd.js";
+/**
+ * @file This file contains server-side functions that are called from the custom post by players. These are the only server functions that should be exposed to the client.
+ */
+
+import {Context, RedisClient} from "@devvit/public-api";
+import {getBirdNerdGame} from "./birdNerdServer/birdNerdGames.js";
+import {getBirdNerdGuesses, storeBirdNerdGuesses} from "./birdNerdServer/playerGuesses.server.js";
+import {BirdNerdGamePartial} from "../types/birdNerd/partialGame.js";
+import {BirdNerdGuess, BirdNerdGuessedWord} from "../types/birdNerd/guess.js";
 import {shuffle} from "lodash";
+import {getAppSettings} from "../settings.js";
 
 export async function getBirdNerdGamePartial (redis: RedisClient, gameId: string): Promise<BirdNerdGamePartial | null> {
     const fullGame = await getBirdNerdGame(redis, gameId);
@@ -16,10 +24,11 @@ export async function getBirdNerdGamePartial (redis: RedisClient, gameId: string
     };
 }
 
-export async function makeBirdNerdGuess (redis: RedisClient, userId: string, gameId: string, guess: string[]): Promise<BirdNerdGuess> {
+export async function makeBirdNerdGuess ({redis, settings}: Context, userId: string, gameId: string, guess: string[]): Promise<BirdNerdGuess> {
     const fullGame = await getBirdNerdGame(redis, gameId);
     const existingGuesses = await getBirdNerdGuesses(redis, gameId, userId);
-    if (!fullGame || existingGuesses && existingGuesses.length >= (fullGame.chances ?? defaultChances)) {
+    const appSettings = await getAppSettings(settings);
+    if (!fullGame || existingGuesses && existingGuesses.length >= (fullGame.chances ?? appSettings.defaultChances)) {
         return Array<BirdNerdGuessedWord>(guess.length).fill({word: " ", result: "incorrect"});
     }
 
@@ -62,3 +71,6 @@ export async function makeBirdNerdGuess (redis: RedisClient, userId: string, gam
     await storeBirdNerdGuesses(redis, gameId, userId, [...existingGuesses || [], gameResult]);
     return gameResult;
 }
+
+export {getPostGame} from "./birdNerdServer/postGameLinks.server.js";
+export {getBirdNerdGuesses} from "./birdNerdServer/playerGuesses.server.js";

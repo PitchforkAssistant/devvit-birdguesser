@@ -1,6 +1,9 @@
 import {Context, Devvit, Form, FormFunction, FormKey, FormOnSubmitEvent, FormOnSubmitEventHandler} from "@devvit/public-api";
 import {createGameForm as createGameFormKey} from "../main.js";
-import {BirdNerdGame, setBirdNerdGame, setPostGame, stringToBirdNerdWords} from "../utils/birdNerd.js";
+import {setBirdNerdGame} from "../server/birdNerdServer/birdNerdGames.js";
+import {setPostGame} from "../server/birdNerdServer/postGameLinks.server.js";
+import {BirdNerdGame} from "../types/birdNerd/game.js";
+import {stringToBirdNerdWords} from "../types/birdNerd/word.js";
 import {BasicPreview} from "../customPost/components/preview.js";
 import {queuePreview} from "../utils/previews.js";
 

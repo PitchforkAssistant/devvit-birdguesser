@@ -1,8 +1,10 @@
 import {Context, FormKey, useAsync, UseAsyncResult, useChannel, UseChannelResult, useForm, useState, UseStateResult} from "@devvit/public-api";
 
 import {CustomPostState} from "../../state.js";
-import {BirdNerdAnswerShape, BirdNerdGamePartial, BirdNerdGuess, BirdNerdGuesses, BirdNerdGuessResult, defaultChances, getBirdNerdGuesses, getPostGame} from "../../../utils/birdNerd.js";
-import {getBirdNerdGamePartial, makeBirdNerdGuess} from "../../../server/birdNerd.server.js";
+import {BirdNerdAnswerShape, BirdNerdGamePartial} from "../../../types/birdNerd/partialGame.js";
+import {BirdNerdGuessResult} from "../../../types/birdNerd/guess.js";
+import {BirdNerdGuess, BirdNerdGuesses} from "../../../types/birdNerd/guess.js";
+import {getBirdNerdGamePartial, makeBirdNerdGuess, getPostGame, getBirdNerdGuesses} from "../../../server/clientRpcs.server.js";
 import {max} from "lodash";
 import {ChannelStatus} from "@devvit/public-api/types/realtime.js";
 import {shareForm, ShareFormSubmitData} from "../../../forms/shareForm.js";
@@ -163,10 +165,16 @@ export class GamePageState {
     }
 
     get chances (): number | null {
-        return this._currentPartialGame.data ? this._currentPartialGame.data.chances ?? defaultChances : null;
+        if (!this._currentPartialGame.data) {
+            return null;
+        }
+        return this._currentPartialGame.data?.chances ?? this.postState.appSettings?.defaultChances ?? null;
     }
 
     get finished (): boolean {
+        if (!this.guesses || !this.guesses.length) {
+            return false;
+        }
         return this.guesses.length >= (this.chances ?? 0) || this.guesses.some(guess => guess.every(word => word.result === "correct"));
     }
 
@@ -203,115 +211,6 @@ export class GamePageState {
     };
 
     getSlotWidth = () => (max(this.choices.map(choice => choice.length)) ?? 0) + (this.postState.reduceSize ? 0 : 2);
-
-    choicePressed = (choice: string) => {
-        if (choice === this.selected) {
-            this.selected = null;
-            return;
-        }
-        this.selected = choice;
-    };
-
-    slotPressed = (slot: number) => {
-        let newGuess: string[] = this.currentGuess;
-        if (newGuess.length !== this.answerShape.length) {
-            newGuess = Array<string>(this.answerShape.length).fill("");
-        }
-
-        if (newGuess[slot] === this.selected && newGuess === this.currentGuess) {
-            return;
-        }
-
-        newGuess[slot] = this.selected ?? "";
-        this.currentGuess = newGuess;
-        this.selected = null;
-    };
-
-    submitPressed = async () => {
-        if (!this.currentGameId || !this.chances || !this.postState.currentUserId) {
-            console.warn("Guess submitted with no game or user?");
-            this.context.ui.showToast("Somehow you submitted a guess without it being fully loaded. Please try refreshing the page.");
-            return;
-        }
-
-        if (this.currentGuess.length !== this.answerShape.length || !this.currentGuess.every(guess => guess && this.choices.includes(guess))) {
-            console.log("here?");
-            this.context.ui.showToast("Please fill in all the blanks before submitting your guess!");
-            return;
-        }
-
-        await this.context.reddit.getPostById(this.context.postId ?? "");
-
-        const guessResult = await makeBirdNerdGuess(this.context.redis, this.postState.currentUserId, this.currentGameId, this.currentGuess);
-        console.log("Guess result: ", guessResult);
-        this.appendGuess(guessResult);
-        this.currentGuess = [];
-
-        if (guessResult.every(result => result.result === "correct")) {
-            this.context.ui.showToast({text: "Congratulations! You got it right!", appearance: "success"});
-        } else if (this.guesses.length >= this.chances) {
-            this.context.ui.showToast("Sorry, you're out of chances!");
-        }
-    };
-
-    sharePressed = async () => {
-        if (!this.currentGameId) {
-            console.warn("No game to share!");
-            this.context.ui.showToast("ERROR: Current game not loaded!");
-            return;
-        }
-
-        const emojiMap: Record<BirdNerdGuessResult, string> = {
-            correct: "🟩",
-            incorrect: "🟥",
-            contains: "🟨",
-        };
-        const guessesText = this.guesses.map(guess => `${guess.map(word => `${emojiMap[word.result]}`).join("")}`).reverse().join("  \n");
-        this.context.ui.showForm(this._shareFormKey, {defaultValues: {comment: this.won ? `I got it in ${this.guesses.length}!\n\n${guessesText}` : `I didn't get it!\n\n&nbsp;\n\n${guessesText}`}});
-    };
-
-    shareSubmit = async (data: ShareFormSubmitData) => {
-        if (!this.postState.currentPost) {
-            console.warn("No post to share on!");
-            this.context.ui.showToast("ERROR: Current post not loaded!");
-            return;
-        }
-
-        if (!data.comment) {
-            console.warn("No comment to share!");
-            this.context.ui.showToast("ERROR: Share comment blank!");
-            return;
-        }
-
-        const comment = await this.context.reddit.submitComment({
-            id: this.postState.currentPost.id,
-            text: data.comment,
-        });
-        this.context.ui.navigateTo(comment);
-    };
-
-    expandImagePressed = () => {
-        if (!this.image) {
-            console.log("No image to expand!");
-            return;
-        }
-        this.overlay = "image";
-    };
-
-    openImagePressed = () => {
-        if (!this.image) {
-            console.log("No image to open!");
-            return;
-        }
-        this.context.ui.navigateTo(this.image);
-    };
-
-    attributionPressed = () => {
-        if (!this.imageAttributionUrl) {
-            return;
-        }
-        this.context.ui.navigateTo(this.imageAttributionUrl);
-    };
 
     onGuessesLoaded = (guesses: BirdNerdGuesses | null, error: Error | null) => {
         if (error) {
@@ -372,5 +271,106 @@ export class GamePageState {
         } catch (e) {
             console.error(`Error resubscribing to channel: ${String(e)}`);
         }
+    };
+
+    choicePressed = (choice: string) => {
+        if (choice === this.selected) {
+            this.selected = null;
+            return;
+        }
+        this.selected = choice;
+    };
+
+    slotPressed = (slot: number) => {
+        let newGuess: string[] = this.currentGuess;
+        if (newGuess.length !== this.answerShape.length) {
+            newGuess = Array<string>(this.answerShape.length).fill("");
+        }
+
+        if (newGuess[slot] === this.selected && newGuess === this.currentGuess) {
+            return;
+        }
+
+        newGuess[slot] = this.selected ?? "";
+        this.currentGuess = newGuess;
+        this.selected = null;
+    };
+
+    submitPressed = async () => {
+        if (!this.currentGameId || !this.chances || !this.postState.currentUserId) {
+            console.warn("Guess submitted with no game or user?");
+            this.context.ui.showToast("Somehow you submitted a guess without it being fully loaded. Please try refreshing the page.");
+            return;
+        }
+
+        if (this.currentGuess.length !== this.answerShape.length || !this.currentGuess.every(guess => guess && this.choices.includes(guess))) {
+            console.log("here?");
+            this.context.ui.showToast("Please fill in all the blanks before submitting your guess!");
+            return;
+        }
+
+        await this.context.reddit.getPostById(this.context.postId ?? "");
+
+        const guessResult = await makeBirdNerdGuess(this.context, this.postState.currentUserId, this.currentGameId, this.currentGuess);
+        console.log("Guess result: ", guessResult);
+        this.appendGuess(guessResult);
+        this.currentGuess = [];
+
+        if (guessResult.every(result => result.result === "correct")) {
+            this.context.ui.showToast({text: "Congratulations! You got it right!", appearance: "success"});
+        } else if (this.guesses.length >= this.chances) {
+            this.context.ui.showToast("Sorry, you're out of chances!");
+        }
+    };
+
+    expandImagePressed = () => {
+        if (!this.image) {
+            console.log("No image to expand!");
+            return;
+        }
+        this.overlay = "image";
+    };
+
+    attributionPressed = () => {
+        if (!this.imageAttributionUrl) {
+            return;
+        }
+        this.context.ui.navigateTo(this.imageAttributionUrl);
+    };
+
+    sharePressed = async () => {
+        if (!this.currentGameId) {
+            console.warn("No game to share!");
+            this.context.ui.showToast("ERROR: Current game not loaded!");
+            return;
+        }
+
+        const emojiMap: Record<BirdNerdGuessResult, string> = {
+            correct: "🟩",
+            incorrect: "🟥",
+            contains: "🟨",
+        };
+        const guessesText = this.guesses.map(guess => `${guess.map(word => `${emojiMap[word.result]}`).join("")}`).reverse().join("  \n");
+        this.context.ui.showForm(this._shareFormKey, {defaultValues: {comment: this.won ? `I got it in ${this.guesses.length}!\n\n${guessesText}` : `I didn't get it!\n\n&nbsp;\n\n${guessesText}`}});
+    };
+
+    shareSubmit = async (data: ShareFormSubmitData) => {
+        if (!this.postState.currentPost) {
+            console.warn("No post to share on!");
+            this.context.ui.showToast("ERROR: Current post not loaded!");
+            return;
+        }
+
+        if (!data.comment) {
+            console.warn("No comment to share!");
+            this.context.ui.showToast("ERROR: Share comment blank!");
+            return;
+        }
+
+        const comment = await this.context.reddit.submitComment({
+            id: this.postState.currentPost.id,
+            text: data.comment,
+        });
+        this.context.ui.navigateTo(comment);
     };
 }

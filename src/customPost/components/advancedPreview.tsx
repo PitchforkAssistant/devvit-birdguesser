@@ -1,6 +1,7 @@
 import {Devvit} from "@devvit/public-api";
 import {UIDimensions} from "@devvit/protos";
-import {BirdNerdGamePartial, BirdNerdImage} from "../../utils/birdNerd.js";
+import {BirdNerdGamePartial} from "../../types/birdNerd/partialGame.js";
+import {BirdNerdImage} from "../../types/birdNerd/image.js";
 import {GameImage} from "./gameImage.js";
 
 export type AdvancedPreviewProps = {

@@ -1,4 +1,4 @@
-import {BirdNerdWord, birdNerdWordsToString, stringToBirdNerdWords} from "../src/utils/birdNerd.js";
+import {BirdNerdWord, birdNerdWordsToString, stringToBirdNerdWords} from "../src/types/birdNerd/word.js";
 
 describe("birdNerdWordsToString", {}, () => {
     const testData: Record<string, BirdNerdWord[]> = {

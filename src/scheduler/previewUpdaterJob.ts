@@ -1,7 +1,7 @@
 import {TriggerContext, ScheduledJobEvent, Devvit} from "@devvit/public-api";
 import {getQueuedPreviews, unqueuePreview} from "../utils/previews.js";
-import {getBirdNerdGamePartial} from "../server/birdNerd.server.js";
-import {getPostGame} from "../utils/birdNerd.js";
+import {getBirdNerdGamePartial} from "../server/clientRpcs.server.js";
+import {getPostGame} from "../server/birdNerdServer/postGameLinks.server.js";
 import {BasicPreview} from "../customPost/components/preview.js";
 import {advancedPreviewMaker} from "../customPost/components/advancedPreview.js";
 
