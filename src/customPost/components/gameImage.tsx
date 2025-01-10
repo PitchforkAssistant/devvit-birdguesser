@@ -8,37 +8,38 @@ export type GameImageProps = {
 
 export const GameImage = (props: GameImageProps) => (
     <zstack alignment="center middle" height={props.imageHeight} width={props.imageWidth}>
-        <RoundedImage {...props} />
-        <zstack height="100%" width="100%" grow>
-            <vstack height={props.imageHeight} alignment="end bottom" padding="none" width="100%">
+        <RoundedImage {...props}>
+            <zstack height="100%" width="100%" grow>
+                <vstack height={props.imageHeight} alignment="end bottom" padding="none" width="100%">
 
-                <hstack padding="none" alignment="end bottom" width="100%">
-                    <spacer grow/>
-                    <vstack padding="xsmall">
-                        {props.onExpandPress && <vstack darkBackgroundColor="rgba(0, 0, 0, 0.5)" lightBackgroundColor="rgba(255, 255, 255, 0.5)" cornerRadius="full" padding="none">
-                            <button onPress={props.onExpandPress} appearance="plain" icon="expand-right-fill" size="small"/>
-                        </vstack>}
-                    </vstack>
-                </hstack>
-            </vstack>
-
-            <vstack height={props.imageHeight} alignment="end bottom" padding="none" width="100%">
-                <hstack padding="none" alignment="end bottom" width="100%">
-                    {props.children ? (
+                    <hstack padding="none" alignment="end bottom" width="100%">
+                        <spacer grow/>
                         <vstack padding="xsmall">
-                            <hstack darkBackgroundColor="rgba(0, 0, 0, 0.5)" lightBackgroundColor="rgba(255, 255, 255, 0.5)" cornerRadius="full" padding="none">
-                                <spacer size="xsmall"/>
-                                <text {...props} selectable={false} onPress={props.onAttributionPress}>
-                                    {props.children}
-                                </text>
-                                <spacer size="xsmall"/>
-                            </hstack>
+                            {props.onExpandPress && <vstack darkBackgroundColor="rgba(0, 0, 0, 0.5)" lightBackgroundColor="rgba(255, 255, 255, 0.5)" cornerRadius="full" padding="none">
+                                <button onPress={props.onExpandPress} appearance="plain" icon="expand-right-fill" size="small"/>
+                            </vstack>}
                         </vstack>
-                    ) : null}
-                    <spacer grow/>
-                </hstack>
-            </vstack>
-        </zstack>
+                    </hstack>
+                </vstack>
+
+                <vstack height={props.imageHeight} alignment="end bottom" padding="none" width="100%">
+                    <hstack padding="none" alignment="end bottom" width="100%">
+                        {props.children ? (
+                            <vstack padding="xsmall">
+                                <hstack darkBackgroundColor="rgba(0, 0, 0, 0.5)" lightBackgroundColor="rgba(255, 255, 255, 0.5)" cornerRadius="full" padding="none">
+                                    <spacer size="xsmall"/>
+                                    <text {...props} selectable={false} onPress={props.onAttributionPress}>
+                                        {props.children}
+                                    </text>
+                                    <spacer size="xsmall"/>
+                                </hstack>
+                            </vstack>
+                        ) : null}
+                        <spacer grow/>
+                    </hstack>
+                </vstack>
+            </zstack>
+        </RoundedImage>
     </zstack>
 );
 
