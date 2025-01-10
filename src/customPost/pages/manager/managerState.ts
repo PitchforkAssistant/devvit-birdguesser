@@ -96,7 +96,7 @@ export class ManagerPageState {
             return;
         }
 
-        const resetTarget = data.target ?? "none";
+        const resetTarget = data.target?.[0] ?? "none";
         if (resetTarget === "none") {
             this.context.ui.showToast("No reset target selected, aborting.");
             return;
@@ -104,12 +104,13 @@ export class ManagerPageState {
 
         if (resetTarget === "all") {
             await resetBirdNerdGuesses(this.context.redis, this.currentGameId);
-            this.context.ui.showToast("All guesses reset!");
+            this.gameState._guesses.setData([]);
+            await this.gameState.sendToChannel({type: "refresh", data: Date.now()});
+            this.context.ui.showToast("All guesses reset! Users may need to refresh.");
         } else if (resetTarget === "me") {
             await resetBirdNerdGuesses(this.context.redis, this.currentGameId, [this.postState.currentUserId]);
+            this.gameState._guesses.setData([]);
             this.context.ui.showToast("Only your game has been reset!");
         }
-
-        await this.gameState.sendToChannel({type: "refresh", data: Date.now()});
     };
 }

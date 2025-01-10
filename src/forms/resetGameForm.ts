@@ -20,5 +20,5 @@ export const resetGameForm: Form = {
 };
 
 export type ResetGameFormSubmitData = {
-    target?: "none" | "me" | "all";
+    target?: ["none" | "me" | "all"];
 };
