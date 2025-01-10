@@ -1,4 +1,4 @@
-import {Context, FormKey, useAsync, UseAsyncResult, useChannel, UseChannelResult, useForm, useState, UseStateResult} from "@devvit/public-api";
+import {Context, FormKey, useChannel, UseChannelResult, useForm, useState, UseStateResult} from "@devvit/public-api";
 
 import {CustomPostState} from "../../state.js";
 import {BirdNerdAnswerShape, BirdNerdGamePartial} from "../../../types/birdNerd/partialGame.js";
@@ -8,22 +8,16 @@ import {getBirdNerdGamePartial, makeBirdNerdGuess, getPostGame, getBirdNerdGuess
 import {max} from "lodash";
 import {ChannelStatus} from "@devvit/public-api/types/realtime.js";
 import {shareForm, ShareFormSubmitData} from "../../../forms/shareForm.js";
+import {GameChannelPacket, GameOverlay} from "./gamePageTypes.js";
+import {LoadState} from "../../../types/loadState.js";
+import {useStateAsync, UseStateAsyncResult} from "../../../utils/useStateAsync.js";
 
 export const gameChannelName = "birdNerdGame";
-
-export type GameChannelPacket = {
-    gameId: string;
-} & ({
-    type: "refresh";
-    data: number;
-})
-
-export type GameOverlay = "none" | "image" | "help";
 
 export class GamePageState {
     public context: Context;
 
-    readonly _guesses: UseStateResult<BirdNerdGuesses>;
+    readonly _loaded: UseStateResult<LoadState>;
     readonly _selected: UseStateResult<string | null>;
     readonly _currentGuess: UseStateResult<string[]>;
     readonly _reload: UseStateResult<number>;
@@ -31,16 +25,16 @@ export class GamePageState {
 
     readonly _shareFormKey: FormKey;
 
-    readonly _currentGameId: UseAsyncResult<string | null>;
-    readonly _currentPartialGame: UseAsyncResult<BirdNerdGamePartial | null>;
-    readonly _pastGuesses: UseAsyncResult<BirdNerdGuesses | null>;
+    readonly _currentGameId: UseStateAsyncResult<string>;
+    readonly _guesses: UseStateAsyncResult<BirdNerdGuesses>;
+    readonly _currentPartialGame: UseStateAsyncResult<BirdNerdGamePartial>;
 
     readonly _channel: UseChannelResult<GameChannelPacket>;
 
     constructor (readonly postState: CustomPostState) {
         this.context = postState.context;
 
-        this._guesses = useState<BirdNerdGuess[]>([]);
+        this._loaded = useState<LoadState>("loading");
         this._selected = useState<string | null>(null);
         this._currentGuess = useState<string[]>([]);
         this._reload = useState<number>(0);
@@ -48,26 +42,27 @@ export class GamePageState {
 
         this._shareFormKey = useForm(shareForm, this.shareSubmit);
 
-        this._currentGameId = useAsync<string | null>(async () => {
+        this._currentGameId = useStateAsync<string>(async () => {
             if (!this.context.postId) {
                 return null;
             }
             return getPostGame(this.context.redis, this.context.postId);
         }, {depends: [this.context.postId ?? null, this.reload]});
 
-        this._currentPartialGame = useAsync<BirdNerdGamePartial | null>(async () => {
+        this._guesses = useStateAsync<BirdNerdGuesses>(async () => {
+            if (!this.currentGameId || !this.postState.currentUserId) {
+                return null;
+            }
+            return getBirdNerdGuesses(this.context.redis, this.currentGameId, this.postState.currentUserId);
+        }, {depends: [this.currentGameId, this.postState.currentUserId, this.reload], defaultData: [], blockDirtyReload: true});
+
+        this._currentPartialGame = useStateAsync<BirdNerdGamePartial>(async () => {
             if (!this.currentGameId) {
                 return null;
             }
             await this.context.reddit.getSubredditInfoByName("test"); // Workaround for server-side functions not existing in useAsync unless an async function is called first
             return getBirdNerdGamePartial(this.context.redis, this.currentGameId);
         }, {depends: [this.currentGameId, this.reload]});
-        this._pastGuesses = useAsync<BirdNerdGuesses | null>(async () => {
-            if (!this.currentGameId || !this.postState.currentUserId) {
-                return null;
-            }
-            return getBirdNerdGuesses(this.context.redis, this.currentGameId, this.postState.currentUserId);
-        }, {depends: [this.currentGameId, this.postState.currentUserId, this.reload], finally: this.onGuessesLoaded});
 
         this._channel = useChannel<GameChannelPacket>({
             name: gameChannelName,
@@ -82,12 +77,38 @@ export class GamePageState {
         }
     }
 
-    get guesses (): BirdNerdGuess[] {
-        return this._guesses[0];
+    get isLoaded (): boolean {
+        return this.loaded === "loaded";
     }
 
-    protected set guesses (value: BirdNerdGuess[]) {
-        this._guesses[1](value);
+    get loaded (): LoadState {
+        if (this._loaded[0] === "loading") {
+            if (this.postState.isLoaded) {
+                const loadingChecks = [this._currentGameId, this._guesses, this._currentPartialGame];
+                if (loadingChecks.every(check => !check.loading)) {
+                    if (loadingChecks.every(check => check.error === null)) {
+                        this.loaded = "loaded";
+                        return "loaded";
+                    }
+                    this.loaded = "error";
+                    return "error";
+                }
+            }
+            return this._loaded[0];
+        }
+        return this._loaded[0];
+    }
+
+    protected set loaded (value: LoadState) {
+        this._loaded[1](value);
+    }
+
+    get guesses (): BirdNerdGuesses {
+        return this._guesses.data ?? [];
+    }
+
+    protected set guesses (value: BirdNerdGuesses) {
+        this._guesses.setData(value);
     }
 
     get selected (): string | null {
@@ -165,10 +186,10 @@ export class GamePageState {
     }
 
     get chances (): number | null {
-        if (!this._currentPartialGame.data) {
+        if (this._currentPartialGame.loading) {
             return null;
         }
-        return this._currentPartialGame.data?.chances ?? this.postState.appSettings?.defaultChances ?? null;
+        return this._currentPartialGame.data?.chances ?? (this.postState.appSettings?.defaultChances ?? null);
     }
 
     get finished (): boolean {
@@ -211,20 +232,6 @@ export class GamePageState {
     };
 
     getSlotWidth = () => (max(this.choices.map(choice => choice.length)) ?? 0) + (this.postState.reduceSize ? 0 : 2);
-
-    onGuessesLoaded = (guesses: BirdNerdGuesses | null, error: Error | null) => {
-        if (error) {
-            console.error("Failed to load guesses:", error);
-            return;
-        }
-
-        if (!guesses) {
-            this.guesses = [];
-            return;
-        }
-
-        this.guesses = guesses;
-    };
 
     sendToChannel = async (message: Omit<GameChannelPacket, "gameId">) => {
         if (!this.context.userId || !this.currentGameId) {

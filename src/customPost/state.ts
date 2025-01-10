@@ -1,4 +1,4 @@
-import {Context, useAsync, UseAsyncResult, useState, UseStateResult} from "@devvit/public-api";
+import {Context, useState, UseStateResult} from "@devvit/public-api";
 import {BasicPostData, BasicUserData} from "../types/basicData.js";
 import {PageName, PageStateList} from "./pages.js";
 import {isModerator} from "devvit-helpers";
@@ -6,38 +6,33 @@ import {GamePageState} from "./pages/game/gameState.js";
 import {UIDimensions} from "@devvit/protos";
 import {ManagerPageState} from "./pages/manager/managerState.js";
 import {AppSettings, getAppSettings} from "../settings.js";
-
-export type SubredditData = {
-    name: string;
-    id: string;
-};
-
-export type UserData = {
-    username: string;
-    id: string;
-};
+import {LoadState} from "../types/loadState.js";
+import {useStateAsync, UseStateAsyncResult} from "../utils/useStateAsync.js";
 
 export class CustomPostState {
+    // Core states
+    readonly _loaded: UseStateResult<LoadState>;
+    readonly _errors: UseStateResult<Record<string, string>>;
     readonly _currentPage: UseStateResult<PageName>;
 
+    // Data states
     readonly _currentUserId: UseStateResult<string | null>;
+    readonly _currentUser: UseStateAsyncResult<BasicUserData>;
+    readonly _currentPost: UseStateAsyncResult<BasicPostData>;
+    readonly _appSettings: UseStateAsyncResult<AppSettings>;
+    readonly _manager: UseStateAsyncResult<boolean>;
 
-    readonly _currentUser: UseAsyncResult<BasicUserData | null>;
-
-    readonly _currentPost: UseAsyncResult<BasicPostData | null>;
-
-    readonly _appSettings: UseAsyncResult<AppSettings>;
-
-    readonly _manager: UseAsyncResult<boolean>;
-
+    // Sub-states
     public PageStates: PageStateList;
 
     constructor (public context: Context, startPage: PageName = "game") {
+        this._loaded = useState<LoadState>("loading");
+        this._errors = useState<Record<string, string>>({});
         this._currentPage = useState<PageName>(startPage);
 
         this._currentUserId = useState<string | null>(context.userId ?? null);
 
-        this._currentUser = useAsync<BasicUserData | null>(async () => {
+        this._currentUser = useStateAsync<BasicUserData>(async () => {
             const user = await context.reddit.getCurrentUser();
             if (user) {
                 const snoovatar = await user.getSnoovatarUrl();
@@ -50,7 +45,7 @@ export class CustomPostState {
             return null;
         }, {depends: [context.userId ?? null]});
 
-        this._currentPost = useAsync<BasicPostData | null>(async () => {
+        this._currentPost = useStateAsync<BasicPostData>(async () => {
             if (!context.postId) {
                 return null;
             }
@@ -71,9 +66,9 @@ export class CustomPostState {
             };
         }, {depends: [context.postId ?? null]});
 
-        this._appSettings = useAsync<AppSettings>(async () => getAppSettings(context.settings), {depends: []});
+        this._appSettings = useStateAsync<AppSettings>(async () => getAppSettings(context.settings), {depends: []});
 
-        this._manager = useAsync<boolean>(async () => {
+        this._manager = useStateAsync<boolean>(async () => {
             if (!context.subredditName || !this.currentUser) {
                 return false;
             }
@@ -87,6 +82,30 @@ export class CustomPostState {
             noGame: undefined,
             help: undefined,
         };
+    }
+
+    get isLoaded (): boolean {
+        return this.loaded === "loaded";
+    }
+
+    get loaded (): LoadState {
+        if (this._loaded[0] === "loading") {
+            const loadingChecks = [this._currentUser, this._currentPost, this._appSettings, this._manager];
+            if (loadingChecks.every(check => !check.loading)) {
+                if (loadingChecks.every(check => check.error === null)) {
+                    this.loaded = "loaded";
+                    return "loaded";
+                }
+                this.loaded = "error";
+                return "error";
+            }
+            return this._loaded[0];
+        }
+        return this._loaded[0];
+    }
+
+    protected set loaded (value: LoadState) {
+        this._loaded[1](value);
     }
 
     get currentPost (): BasicPostData | null {

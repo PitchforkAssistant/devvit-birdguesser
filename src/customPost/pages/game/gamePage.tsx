@@ -56,7 +56,7 @@ export const GamePage = (postState: CustomPostState) => {
 
     return (
         <zstack alignment="center top" width="100%" height="100%">
-            {!!game.currentGameId && ((!!game._pastGuesses.data || !game._pastGuesses.loading) && (!!game._currentPartialGame.data || !game._currentPartialGame.loading)) ? gameContent : <vstack alignment="middle center" backgroundColor="#D3DAC2" width="100%" height="100%" grow><icon name="load" size="large"/></vstack>}
+            {!!game.currentGameId && (!game._guesses.loading && (!!game._currentPartialGame.data || !game._currentPartialGame.loading)) ? gameContent : <vstack alignment="middle center" backgroundColor="#D3DAC2" width="100%" height="100%" grow><icon name="load" size="large"/></vstack>}
             {game.overlay === "help" && <HelpOverlay direction={direction} imageWidth={imageWidth} imageHeight={imageHeight}/>}
             {game.overlay === "image" && game.image && <OverlayImage url={game.image} width="100%" height="100%" imageWidth={`${postState.uiDims.height}px`} imageHeight={`${postState.uiDims.height}px`} resizeMode="fit" style="metadata" size="xsmall" onAttributionPress={game.attributionPressed}>{game.imageAttribution ?? ""}</OverlayImage>}
             <vstack alignment="center middle" width="100%" height="100%">
