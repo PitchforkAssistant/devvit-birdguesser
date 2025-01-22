@@ -20,6 +20,7 @@ type CreateGameFormSubmitData = {
     chances?: number;
     post?: boolean;
     postTitle?: string;
+    endText?: string;
 }
 
 type CreateGameFormData = {
@@ -99,6 +100,13 @@ const form: FormFunction<CreateGameFormData> = (data: CreateGameFormData): Form 
                 required: true,
             },
             {
+                type: "string",
+                name: "endText",
+                label: "End Text",
+                helpText: "This text will be displayed below the game result after the game is finished. If left blank, no message will be shown.",
+                defaultValue: data.defaultValues?.endText,
+            },
+            {
                 type: "group",
                 label: "Post",
                 helpText: "You can choose to post this game to the subreddit immediately. If you choose not to post it, the game will be saved for future use (not yet implemented).",
@@ -175,6 +183,7 @@ const formHandler: FormOnSubmitEventHandler<CreateGameFormSubmitData> = async (e
             answer: stringToBirdNerdWords(values.answer),
             choices: values.choices.split(",").map(choice => choice.trim()),
             chances: values.chances,
+            endText: values.endText,
         };
         await setBirdNerdGame(context.redis, birdNerdGame);
         console.log(`Created BirdNerd game: ${JSON.stringify(birdNerdGame, null, 2)}`);
