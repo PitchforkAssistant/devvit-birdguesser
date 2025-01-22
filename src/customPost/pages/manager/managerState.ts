@@ -8,7 +8,7 @@ import {queuePreview} from "../../../utils/previews.js";
 import {resetGameForm, ResetGameFormSubmitData} from "../../../forms/resetGameForm.js";
 
 export class ManagerPageState {
-    public context: Context;
+    readonly context: Context;
     readonly editRawGameFormKey: FormKey;
     readonly resetGameFormKey: FormKey;
 
@@ -18,26 +18,12 @@ export class ManagerPageState {
         this.resetGameFormKey = useForm(resetGameForm, this.resetGameSubmit);
     }
 
-    get gameState () {
-        return this.postState.PageStates.game;
-    }
-
     get currentGameId () {
         return this.gameState.currentGameId;
     }
-
-    updatePreviewPressed = async () => {
-        if (!this.context.postId) {
-            this.context.ui.showToast("No post ID found!");
-            return;
-        }
-
-        // Force server-side execution, otherwise server-functions may be undefined
-        await this.context.reddit.getCurrentUser();
-
-        await queuePreview(this.context.redis, this.context.postId);
-        this.context.ui.showToast("Preview update queued!");
-    };
+    get gameState () {
+        return this.postState.PageStates.game;
+    }
 
     editRawGamePressed = async () => {
         if (!this.currentGameId) {
@@ -51,7 +37,6 @@ export class ManagerPageState {
             },
         });
     };
-
     editRawGameSubmit = async (data: EditGameFormSubmitData) => {
         const rawGameString = data.rawGame;
         if (!rawGameString) {
@@ -87,11 +72,9 @@ export class ManagerPageState {
             this.context.ui.showForm(this.editRawGameFormKey, {defaultValues: {rawGame: rawGameString}});
         }
     };
-
     resetGamePressed = async () => {
         this.context.ui.showForm(this.resetGameFormKey);
     };
-
     resetGameSubmit = async (data: ResetGameFormSubmitData) => {
         if (!this.currentGameId) {
             this.context.ui.showToast("Unable to reset, no game currently loaded.");
@@ -122,5 +105,17 @@ export class ManagerPageState {
             this.gameState._guesses.setData([]);
             this.context.ui.showToast("Only your game has been reset!");
         }
+    };
+    updatePreviewPressed = async () => {
+        if (!this.context.postId) {
+            this.context.ui.showToast("No post ID found!");
+            return;
+        }
+
+        // Force server-side execution, otherwise server-functions may be undefined
+        await this.context.reddit.getCurrentUser();
+
+        await queuePreview(this.context.redis, this.context.postId);
+        this.context.ui.showToast("Preview update queued!");
     };
 }

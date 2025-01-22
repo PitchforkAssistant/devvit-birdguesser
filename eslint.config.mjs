@@ -2,17 +2,18 @@ import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import vitest from "eslint-plugin-vitest";
 import tsParser from "@typescript-eslint/parser";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import {fileURLToPath} from "node:url";
 import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
-import perfectionist from 'eslint-plugin-perfectionist'
+import {FlatCompat} from "@eslint/eslintrc";
+import perfectionist from "eslint-plugin-perfectionist";
+import { group } from "node:console";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const compat = new FlatCompat({
     baseDirectory: __dirname,
     recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
+    allConfig: js.configs.all,
 });
 
 export default [{
@@ -27,7 +28,7 @@ export default [{
     plugins: {
         "@typescript-eslint": typescriptEslint,
         vitest,
-        perfectionist
+        perfectionist,
     },
 
     languageOptions: {
@@ -86,10 +87,10 @@ export default [{
         "comma-dangle": ["error", "always-multiline"],
         "comma-style": ["error", "last"],
         "computed-property-spacing": ["error", "never"],
-        curly: ["error", "all"],
+        "curly": ["error", "all"],
         "dot-location": ["error", "property"],
 
-        eqeqeq: ["error", "always", {
+        "eqeqeq": ["error", "always", {
             null: "ignore",
         }],
 
@@ -102,7 +103,7 @@ export default [{
         "function-paren-newline": ["error", "multiline"],
         "implicit-arrow-linebreak": ["error", "beside"],
 
-        indent: ["error", 4, {
+        "indent": ["error", 4, {
             VariableDeclarator: "first",
             SwitchCase: 0,
         }],
@@ -136,11 +137,11 @@ export default [{
         "padded-blocks": ["error", "never"],
         "quote-props": ["error", "consistent-as-needed"],
 
-        quotes: ["error", "double", {
+        "quotes": ["error", "double", {
             avoidEscape: true,
         }],
 
-        semi: ["error", "always"],
+        "semi": ["error", "always"],
 
         "semi-spacing": ["error", {
             before: false,
@@ -168,15 +169,42 @@ export default [{
         "template-tag-spacing": ["error", "never"],
         "wrap-iife": ["error", "inside"],
 
-        camelcase: ["error", {
+        "camelcase": ["error", {
             properties: "always",
         }],
 
         "perfectionist/sort-jsx-props": ["error",
             {
                 type: "alphabetical",
+                order: "asc",
                 ignoreCase: true,
-            },
-        ]
+            }],
+
+        "perfectionist/sort-classes": ["error",
+            {
+                type: "alphabetical",
+                order: "asc",
+                ignoreCase: true,
+                specialCharacters: "keep",
+                partitionByComment: true,
+                partitionByNewLine: false,
+                newlinesBetween: "always",
+                groups: [
+                    'index-signature',
+                    'static-property',
+                    'static-block',
+                    ['protected-property', 'protected-accessor-property'],
+                    ['private-property', 'private-accessor-property'],
+                    ['property', 'accessor-property'],
+                    'constructor',
+                    'static-method',
+                    'protected-method',
+                    'private-method',
+                    ['get-method', 'set-method'],
+                    'method',
+                    'function-property',
+                    'unknown',
+                  ]
+            }],
     },
 }];
