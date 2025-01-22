@@ -10,3 +10,8 @@ export async function getPostGame (redis: RedisClient, postId: string): Promise<
     const gameId = await redis.hGet(postsKey, postId);
     return gameId ?? null;
 }
+
+export async function getAllGamePosts (redis: RedisClient): Promise<string[]> {
+    const postGameLinks = await redis.hGetAll(postsKey);
+    return Object.keys(postGameLinks);
+}

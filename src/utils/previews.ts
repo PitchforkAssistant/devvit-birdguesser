@@ -10,6 +10,10 @@ export async function getQueuedPreviews (redis: RedisClient): Promise<string[]> 
 export async function queuePreview (redis: RedisClient, postId: string) {
     await redis.zAdd(previewUpdateQueue, {member: postId, score: Date.now()});
 }
+export async function queuePreviews (redis: RedisClient, postIds: string[]) {
+    const members = postIds.map(postId => ({member: postId, score: Date.now()}));
+    await redis.zAdd(previewUpdateQueue, ...members);
+}
 
 export async function unqueuePreview (redis: RedisClient, postId: string) {
     await redis.zRem(previewUpdateQueue, [postId]);
