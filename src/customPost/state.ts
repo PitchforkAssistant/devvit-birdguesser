@@ -7,7 +7,7 @@ import {UIDimensions} from "@devvit/protos";
 import {ManagerPageState} from "./pages/manager/managerState.js";
 import {AppSettings, getAppSettings} from "../settings.js";
 import {LoadState} from "../types/loadState.js";
-import {useStateAsync, UseStateAsyncResult} from "../utils/useStateAsync.js";
+import {useAsyncState, UseAsyncStateResult} from "../utils/useAsyncState.js";
 
 export class CustomPostState {
     // Core states
@@ -17,10 +17,10 @@ export class CustomPostState {
 
     // Data states
     readonly _currentUserId: UseStateResult<string | null>;
-    readonly _currentUser: UseStateAsyncResult<BasicUserData>;
-    readonly _currentPost: UseStateAsyncResult<BasicPostData>;
-    readonly _appSettings: UseStateAsyncResult<AppSettings>;
-    readonly _manager: UseStateAsyncResult<boolean>;
+    readonly _currentUser: UseAsyncStateResult<BasicUserData>;
+    readonly _currentPost: UseAsyncStateResult<BasicPostData>;
+    readonly _appSettings: UseAsyncStateResult<AppSettings>;
+    readonly _manager: UseAsyncStateResult<boolean>;
 
     // Sub-states
     public PageStates: PageStateList;
@@ -32,7 +32,7 @@ export class CustomPostState {
 
         this._currentUserId = useState<string | null>(context.userId ?? null);
 
-        this._currentUser = useStateAsync<BasicUserData>(async () => {
+        this._currentUser = useAsyncState<BasicUserData>(async () => {
             const user = await context.reddit.getCurrentUser();
             if (user) {
                 const snoovatar = await user.getSnoovatarUrl();
@@ -45,7 +45,7 @@ export class CustomPostState {
             return null;
         }, {depends: [context.userId ?? null]});
 
-        this._currentPost = useStateAsync<BasicPostData>(async () => {
+        this._currentPost = useAsyncState<BasicPostData>(async () => {
             if (!context.postId) {
                 return null;
             }
@@ -66,9 +66,9 @@ export class CustomPostState {
             };
         }, {depends: [context.postId ?? null]});
 
-        this._appSettings = useStateAsync<AppSettings>(async () => getAppSettings(context.settings), {depends: []});
+        this._appSettings = useAsyncState<AppSettings>(async () => getAppSettings(context.settings), {depends: []});
 
-        this._manager = useStateAsync<boolean>(async () => {
+        this._manager = useAsyncState<boolean>(async () => {
             if (!context.subredditName || !this.currentUser) {
                 return false;
             }

@@ -10,7 +10,7 @@ import {ChannelStatus} from "@devvit/public-api/types/realtime.js";
 import {shareForm, ShareFormSubmitData} from "../../../forms/shareForm.js";
 import {GameChannelPacket, GameOverlay} from "./gamePageTypes.js";
 import {LoadState} from "../../../types/loadState.js";
-import {useStateAsync, UseStateAsyncResult} from "../../../utils/useStateAsync.js";
+import {useAsyncState, UseAsyncStateResult} from "../../../utils/useAsyncState.js";
 
 export const gameChannelName = "birdNerdGame";
 
@@ -25,9 +25,9 @@ export class GamePageState {
 
     readonly _shareFormKey: FormKey;
 
-    readonly _currentGameId: UseStateAsyncResult<string>;
-    readonly _guesses: UseStateAsyncResult<BirdNerdGuesses>;
-    readonly _currentPartialGame: UseStateAsyncResult<BirdNerdGamePartial>;
+    readonly _currentGameId: UseAsyncStateResult<string>;
+    readonly _guesses: UseAsyncStateResult<BirdNerdGuesses>;
+    readonly _currentPartialGame: UseAsyncStateResult<BirdNerdGamePartial>;
 
     readonly _channel: UseChannelResult<GameChannelPacket>;
 
@@ -42,21 +42,21 @@ export class GamePageState {
 
         this._shareFormKey = useForm(shareForm, this.shareSubmit);
 
-        this._currentGameId = useStateAsync<string>(async () => {
+        this._currentGameId = useAsyncState<string>(async () => {
             if (!this.context.postId) {
                 return null;
             }
             return getPostGame(this.context.redis, this.context.postId);
         }, {depends: [this.context.postId ?? null, this.reload]});
 
-        this._guesses = useStateAsync<BirdNerdGuesses>(async () => {
+        this._guesses = useAsyncState<BirdNerdGuesses>(async () => {
             if (!this.currentGameId || !this.postState.currentUserId) {
                 return null;
             }
             return getBirdNerdGuesses(this.context.redis, this.currentGameId, this.postState.currentUserId);
         }, {depends: [this.currentGameId, this.postState.currentUserId, this.reload], defaultData: [], blockDirtyReload: true});
 
-        this._currentPartialGame = useStateAsync<BirdNerdGamePartial>(async () => {
+        this._currentPartialGame = useAsyncState<BirdNerdGamePartial>(async () => {
             if (!this.currentGameId) {
                 return null;
             }
