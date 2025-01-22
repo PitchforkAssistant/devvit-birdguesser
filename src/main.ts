@@ -14,22 +14,21 @@ Devvit.debug.emitState = true;
 // These are exports of Devvit.add... functions contained in other files, which helps with organization.
 // It's effectively the same as if you had written the code here.
 
-// Settings
-export {devvitAppSettings} from "./settings.js";
+// Buttons
+export {createGameButton} from "./buttons/createGameButton.js";
+
+// Custom Post
+export {customPostExample} from "./customPost/index.js";
 
 // Forms
 export {createGameForm} from "./forms/createGameForm.js";
 export {createPostForm} from "./forms/createPostForm.js";
 
-// Buttons
-export {createGameButton} from "./buttons/createGameButton.js";
-// export {customPostButton} from "./buttons/customPostButton.js";
-
-// Custom Post
-export {customPostExample} from "./customPost/index.js";
-
 // Scheduler jobs
 export {previewUpdaterJob} from "./scheduler/previewUpdaterJob.js";
+
+// Settings
+export {devvitAppSettings} from "./settings.js";
 
 // Triggers
 export {appInstallTrigger} from "./triggers/appInstall.js";

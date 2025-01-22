@@ -1,7 +1,8 @@
 import {Devvit} from "@devvit/public-api";
-import {CustomPostState} from "./state.js";
+
 import {Page} from "./pages.js";
 import {colors} from "./pages/game/gamePageConstants.js";
+import {CustomPostState} from "./state.js";
 
 export const customPostExample = Devvit.addCustomPostType({
     name: "Custom Post Example",

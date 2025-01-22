@@ -1,10 +1,10 @@
-import {HelpPage} from "./pages/help/helpPage.js";
 import {GamePage} from "./pages/game/gamePage.js";
-import {NoGamePage} from "./pages/noGame/noGamePage.js";
 import {GamePageState} from "./pages/game/gameState.js";
-import {CustomPostState} from "./state.js";
+import {HelpPage} from "./pages/help/helpPage.js";
 import {ManagerPage} from "./pages/manager/managerPage.js";
 import {ManagerPageState} from "./pages/manager/managerState.js";
+import {NoGamePage} from "./pages/noGame/noGamePage.js";
+import {CustomPostState} from "./state.js";
 
 export type PageName = "game" | "noGame" | "help" | "manager";
 

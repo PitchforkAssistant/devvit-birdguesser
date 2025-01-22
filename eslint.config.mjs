@@ -205,6 +205,20 @@ export default [{
                     'function-property',
                     'unknown',
                   ]
-            }],
+            }
+        ],
+
+        "perfectionist/sort-imports": ["error", {
+            "partitionByComment": true,
+        }],
+        "perfectionist/sort-exports": ["error", {
+            "partitionByComment": true,
+        }],
+        "perfectionist/sort-named-imports": ["error", {
+            "partitionByComment": true,
+        }],
+        "perfectionist/sort-named-exports": ["error", {
+            "partitionByComment": true,
+        }],
     },
 }];

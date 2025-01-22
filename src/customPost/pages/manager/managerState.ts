@@ -1,11 +1,12 @@
 import {Context, FormKey, useForm} from "@devvit/public-api";
-import {CustomPostState} from "../../state.js";
+
+import {editGameForm, EditGameFormSubmitData} from "../../../forms/editGameForm.js";
+import {resetGameForm, ResetGameFormSubmitData} from "../../../forms/resetGameForm.js";
 import {getBirdNerdGame, setBirdNerdGame} from "../../../server/birdNerdServer/birdNerdGames.js";
 import {resetBirdNerdGuesses} from "../../../server/birdNerdServer/playerGuesses.server.js";
 import {isBirdNerdGame} from "../../../types/birdNerd/game.js";
-import {editGameForm, EditGameFormSubmitData} from "../../../forms/editGameForm.js";
 import {queuePreview} from "../../../utils/previews.js";
-import {resetGameForm, ResetGameFormSubmitData} from "../../../forms/resetGameForm.js";
+import {CustomPostState} from "../../state.js";
 
 export class ManagerPageState {
     readonly context: Context;

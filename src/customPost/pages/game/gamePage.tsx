@@ -1,12 +1,13 @@
 import {Devvit} from "@devvit/public-api";
-import {CustomPostState} from "../../state.js";
+
+import {AnswerRow} from "../../components/answerRow.js";
+import {ChoicesColumn} from "../../components/choicesColumn.js";
 import {ChoicesRow} from "../../components/choicesRow.js";
 import {GameImage} from "../../components/gameImage.js";
-import {AnswerRow} from "../../components/answerRow.js";
 import {GuessRow} from "../../components/guessRow.js";
-import {ChoicesColumn} from "../../components/choicesColumn.js";
-import {ImageOverlay} from "../../components/imageOverlay.js";
 import {HelpOverlay} from "../../components/helpOverlay.js";
+import {ImageOverlay} from "../../components/imageOverlay.js";
+import {CustomPostState} from "../../state.js";
 import {colors} from "./gamePageConstants.js";
 
 export const GamePage = (postState: CustomPostState) => {

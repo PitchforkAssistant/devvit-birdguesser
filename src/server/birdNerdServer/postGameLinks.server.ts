@@ -1,4 +1,5 @@
 import {RedisClient} from "@devvit/public-api";
+
 import {postsKey} from "./redisKeys.server.js";
 
 export async function setPostGame (redis: RedisClient, postId: string, voteId: string): Promise<void> {

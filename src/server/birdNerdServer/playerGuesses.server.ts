@@ -1,4 +1,5 @@
 import {RedisClient} from "@devvit/public-api";
+
 import {BirdNerdGuesses, isBirdNerdGuesses} from "../../types/birdNerd/guess.js";
 import {guessesKeyPrefix} from "./redisKeys.server.js";
 

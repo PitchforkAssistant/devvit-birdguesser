@@ -1,5 +1,6 @@
 import {UIDimensions} from "@devvit/protos";
 import {Devvit} from "@devvit/public-api";
+
 import {chunkEvenly} from "../../utils/array.js";
 import {choiceHeightColumn, colors} from "../pages/game/gamePageConstants.js";
 

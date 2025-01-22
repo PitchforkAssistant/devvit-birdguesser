@@ -1,4 +1,5 @@
 import {Devvit} from "@devvit/public-api";
+
 import {BirdNerdJoiner} from "../../types/birdNerd/joiner.js";
 import {colors} from "../pages/game/gamePageConstants.js";
 

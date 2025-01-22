@@ -1,4 +1,5 @@
 import {Devvit} from "@devvit/public-api";
+
 import {PostDirection} from "../../utils/post.js";
 import {colors} from "../pages/game/gamePageConstants.js";
 

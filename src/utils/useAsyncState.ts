@@ -1,4 +1,4 @@
-import {AsyncError, JSONValue, useState, useAsync, AsyncUseStateInitializer as UseAsyncStateInitializer} from "@devvit/public-api";
+import {AsyncError, JSONValue, useAsync, AsyncUseStateInitializer as UseAsyncStateInitializer, useState} from "@devvit/public-api";
 
 /**
  * The return type of the useAsyncState function.

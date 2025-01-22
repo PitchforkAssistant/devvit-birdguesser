@@ -1,8 +1,9 @@
 import {UIDimensions} from "@devvit/protos";
 import {Devvit} from "@devvit/public-api";
-import {getChoiceBackgroundColor} from "./choicesColumn.js";
+
 import {chunkEvenly} from "../../utils/array.js";
 import {choiceCharacterWidth, colors} from "../pages/game/gamePageConstants.js";
+import {getChoiceBackgroundColor} from "./choicesColumn.js";
 
 export function getChoicesRowCount (choices: string[], charWidth: number, viewWidth: number, joiner: string = " "): number {
     const charCount = choices.join(joiner).length;

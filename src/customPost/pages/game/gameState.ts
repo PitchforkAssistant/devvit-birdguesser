@@ -1,22 +1,22 @@
 import {Context, FormKey, useChannel, UseChannelResult, useForm, useState, UseStateResult} from "@devvit/public-api";
+import {ChannelStatus} from "@devvit/public-api/types/realtime.js";
+import {max} from "lodash";
 
-import {CustomPostState} from "../../state.js";
-import {BirdNerdAnswerShape, BirdNerdGamePartial} from "../../../types/birdNerd/partialGame.js";
+import {shareForm, ShareFormSubmitData} from "../../../forms/shareForm.js";
+import {getBirdNerdGamePartial, getBirdNerdGuesses, getPostGame, makeBirdNerdGuess} from "../../../server/clientRpcs.server.js";
+import {defaultAppSettings} from "../../../settings.js";
 import {BirdNerdGuessResult} from "../../../types/birdNerd/guess.js";
 import {BirdNerdGuess, BirdNerdGuesses} from "../../../types/birdNerd/guess.js";
-import {getBirdNerdGamePartial, makeBirdNerdGuess, getPostGame, getBirdNerdGuesses} from "../../../server/clientRpcs.server.js";
-import {max} from "lodash";
-import {ChannelStatus} from "@devvit/public-api/types/realtime.js";
-import {shareForm, ShareFormSubmitData} from "../../../forms/shareForm.js";
-import {GameChannelPacket, GameOverlay} from "./gamePageTypes.js";
-import {LoadState} from "../../../types/loadState.js";
-import {useAsyncState, UseAsyncStateResult} from "../../../utils/useAsyncState.js";
 import {BirdNerdImage} from "../../../types/birdNerd/image.js";
 import {BirdNerdOutcome} from "../../../types/birdNerd/outcome.js";
-import {choiceCharacterWidth, choiceHeightColumn, choiceHeightRow, defaultAspectRatio, guessRowHeight, horizontalLayoutPadding, verticalLayoutPadding, placeholderBirdNerdImage} from "./gamePageConstants.js";
-import {defaultAppSettings} from "../../../settings.js";
-import {getChoicesRowCount} from "../../components/choicesRow.js";
+import {BirdNerdAnswerShape, BirdNerdGamePartial} from "../../../types/birdNerd/partialGame.js";
+import {LoadState} from "../../../types/loadState.js";
+import {useAsyncState, UseAsyncStateResult} from "../../../utils/useAsyncState.js";
 import {getChoicesColumnCount} from "../../components/choicesColumn.js";
+import {getChoicesRowCount} from "../../components/choicesRow.js";
+import {CustomPostState} from "../../state.js";
+import {choiceCharacterWidth, choiceHeightColumn, choiceHeightRow, defaultAspectRatio, guessRowHeight, horizontalLayoutPadding, placeholderBirdNerdImage, verticalLayoutPadding} from "./gamePageConstants.js";
+import {GameChannelPacket, GameOverlay} from "./gamePageTypes.js";
 
 export const gameChannelName = "birdNerdGame";
 

@@ -1,4 +1,5 @@
 import {Devvit, SettingsClient} from "@devvit/public-api";
+
 import {validateDefaultChances} from "./validators/validateDefaultChances.js";
 
 export type AppSettings = {

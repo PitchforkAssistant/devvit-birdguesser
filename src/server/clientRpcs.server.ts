@@ -3,12 +3,13 @@
  */
 
 import {Context, RedisClient} from "@devvit/public-api";
+import {shuffle} from "lodash";
+
+import {getAppSettings} from "../settings.js";
+import {BirdNerdGuess, BirdNerdGuessedWord} from "../types/birdNerd/guess.js";
+import {BirdNerdGamePartial} from "../types/birdNerd/partialGame.js";
 import {getBirdNerdGame} from "./birdNerdServer/birdNerdGames.js";
 import {getBirdNerdGuesses, storeBirdNerdGuesses} from "./birdNerdServer/playerGuesses.server.js";
-import {BirdNerdGamePartial} from "../types/birdNerd/partialGame.js";
-import {BirdNerdGuess, BirdNerdGuessedWord} from "../types/birdNerd/guess.js";
-import {shuffle} from "lodash";
-import {getAppSettings} from "../settings.js";
 
 export async function getBirdNerdGamePartial (redis: RedisClient, gameId: string): Promise<BirdNerdGamePartial | null> {
     const fullGame = await getBirdNerdGame(redis, gameId);
@@ -73,5 +74,5 @@ export async function makeBirdNerdGuess ({redis, settings}: Context, userId: str
     return gameResult;
 }
 
-export {getPostGame} from "./birdNerdServer/postGameLinks.server.js";
 export {getBirdNerdGuesses} from "./birdNerdServer/playerGuesses.server.js";
+export {getPostGame} from "./birdNerdServer/postGameLinks.server.js";
