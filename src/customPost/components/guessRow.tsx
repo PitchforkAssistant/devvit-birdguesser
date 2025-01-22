@@ -3,35 +3,35 @@ import {BirdNerdAnswerShape} from "../../types/birdNerd/partialGame.js";
 import {BirdNerdGuessResult} from "../../types/birdNerd/guess.js";
 import {BirdNerdGuess, BirdNerdGuessedWord, BirdNerdGuesses} from "../../types/birdNerd/guess.js";
 import {Joiner} from "./joiner.js";
+import {colors} from "../pages/game/gamePageConstants.js";
 
 export type GuessRowProps = {
     answerShape: BirdNerdAnswerShape;
     guesses: BirdNerdGuesses;
     chances: number;
-    getSlotWidth: () => number;
+    slotWidth: number;
     reduceSize?: boolean;
-    disableSubmit?: boolean;
 };
 
-export function getGuessedWordBackgroundColor (word: string, result: BirdNerdGuessResult, theme: "light" | "dark" = "light"): string {
+export function getGuessedWordBackgroundColor (word: string, result: BirdNerdGuessResult): string {
     if (!word.trim()) {
-        return theme === "light" ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.1)";
+        return colors.backgroundBlank;
     }
-    if (result === "correct") {
-        return theme === "light" ? "#77DD77" : "#77DD77";
+    switch (result) {
+    case "correct":
+        return colors.backgroundCorrect;
+    case "incorrect":
+        return colors.backgroundIncorrect;
+    case "contains":
+        return colors.backgroundContains;
+    default:
+        return colors.backgroundBlank;
     }
-    if (result === "incorrect") {
-        return theme === "light" ? "#ff746c" : "#ff746c";
-    }
-    if (result === "contains") {
-        return theme === "light" ? "#FDFD96" : "#FDFD96";
-    }
-    return theme === "light" ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.1)";
 }
 
-export function getGuessBackgroundColor (guess: BirdNerdGuess, theme: "light" | "dark" = "light"): string | undefined {
+export function getGuessBackgroundColor (guess: BirdNerdGuess): string | undefined {
     if (guess.every(word => word.result === "correct")) {
-        return theme === "light" ? "#77DD77" : "#77DD77";
+        return colors.backgroundCorrect;
     }
     return undefined;
 }
@@ -40,18 +40,18 @@ export const GuessRow = (props: GuessRowProps) => {
     // Filled to be equal to length of props.chances but unused guesses just being empty
     const paddedGuesses: BirdNerdGuesses = Array<BirdNerdGuess>(props.chances - props.guesses.length).fill(Array<BirdNerdGuessedWord>(props.answerShape.length).fill({word: "", result: "incorrect"})).concat(props.guesses);
     return (
-        <vstack gap="small" alignment="center middle" border="thick" borderColor="rgba(255, 255, 255, 0.2)" backgroundColor="rgba(255, 255, 255, 0.2)" cornerRadius="medium" padding={props.reduceSize ? "xsmall" : "small"} reverse>
+        <vstack alignment="center middle" backgroundColor={colors.backgroundSecondary} border="thick" borderColor={colors.border} cornerRadius="medium" gap="small" padding="small" reverse>
             {paddedGuesses.map(guess => (
-                <hstack alignment="center middle" cornerRadius="medium" border={guess.every(word => word.result === "correct") ? "thick" : "none"} borderColor={getGuessBackgroundColor(guess, "dark")} backgroundColor={getGuessBackgroundColor(guess, "light")}>
+                <hstack alignment="center middle" backgroundColor={getGuessBackgroundColor(guess)} border={guess.every(word => word.result === "correct") ? "thick" : "none"} borderColor={getGuessBackgroundColor(guess)} cornerRadius="medium">
                     <spacer size="xsmall"/>
                     {guess.map((word, wordIndex) => props.answerShape[wordIndex] ? (
-                        <hstack alignment="center middle" gap="none">
-                            <zstack alignment="center middle" backgroundColor={getGuessedWordBackgroundColor(word.word, word.result, "dark")} cornerRadius="small">
-                                <hstack alignment="center middle">
-                                    <text selectable={false} style="body" size={props.reduceSize ? "large" : "xlarge"} alignment="center middle" lightColor="rgba(0, 0, 0, 0)" darkColor="rgba(255, 255, 255, 0)">{"_".repeat(props.getSlotWidth())}</text>
+                        <hstack alignment="center middle" gap="none" grow>
+                            <zstack alignment="center middle" backgroundColor={getGuessedWordBackgroundColor(word.word, word.result)} cornerRadius="small" grow>
+                                <hstack alignment="center middle" grow>
+                                    <text alignment="center middle" darkColor="rgba(255, 255, 255, 0)" grow lightColor="rgba(0, 0, 0, 0)" selectable={false} size={props.reduceSize ? "large" : "xlarge"}>{"_".repeat(props.slotWidth)}</text>
                                 </hstack>
-                                {word && <hstack alignment="center middle">
-                                    <text color="#111" selectable={false} style="body" size={props.reduceSize ? "medium" : "large"} weight="bold" alignment="center middle">{word.word}</text>
+                                {word && <hstack alignment="center middle" grow>
+                                    <text alignment="center middle" color={colors.text} selectable={false} size={props.reduceSize ? "medium" : "large"} weight="bold">{word.word}</text>
                                 </hstack>}
                             </zstack>
                             {wordIndex < props.answerShape.length - 1 && <Joiner joiner={props.answerShape[wordIndex].joiner} reduceSize={props.reduceSize}/>}

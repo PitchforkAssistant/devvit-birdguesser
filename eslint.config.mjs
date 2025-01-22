@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import js from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
+import perfectionist from 'eslint-plugin-perfectionist'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +27,7 @@ export default [{
     plugins: {
         "@typescript-eslint": typescriptEslint,
         vitest,
+        perfectionist
     },
 
     languageOptions: {
@@ -169,5 +171,12 @@ export default [{
         camelcase: ["error", {
             properties: "always",
         }],
+
+        "perfectionist/sort-jsx-props": ["error",
+            {
+                type: "alphabetical",
+                ignoreCase: true,
+            },
+        ]
     },
 }];

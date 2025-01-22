@@ -1,6 +1,7 @@
 import {Devvit} from "@devvit/public-api";
 import {CustomPostState} from "./state.js";
 import {Page} from "./pages.js";
+import {colors} from "./pages/game/gamePageConstants.js";
 
 export const customPostExample = Devvit.addCustomPostType({
     name: "Custom Post Example",
@@ -10,16 +11,16 @@ export const customPostExample = Devvit.addCustomPostType({
         const state = new CustomPostState(context);
         return (
             <blocks height="tall">
-                <zstack alignment="center top" width="100%" height="100%" backgroundColor="#D3DAC2">
+                <zstack alignment="center top" backgroundColor={colors.background} height="100%" width="100%">
                     <vstack alignment="center middle" grow height="100%" width="100%">
                         <Page state={state} />
                     </vstack>
-                    <vstack alignment="center top" width="100%" height="100%">
-                        <hstack padding="medium" alignment="center middle" minWidth="100%">
+                    <vstack alignment="center top" height="100%" width="100%">
+                        <hstack alignment="center middle" minWidth="100%" padding="medium">
                             <spacer grow/>
                             {state.isModerator && state.currentPage === "game" &&
-                                <vstack backgroundColor="#dce1ce" cornerRadius="full" padding="small" onPress={() => state.changePage("manager")}>
-                                    <icon name="settings" size="small" color="#111"/>
+                                <vstack backgroundColor={colors.backgroundSecondary} border="thick" borderColor={colors.border} cornerRadius="full" onPress={() => state.changePage("manager")} padding="small">
+                                    <icon color={colors.text} name="settings" size="small"/>
                                 </vstack>
                             }
                         </hstack>

@@ -1,5 +1,6 @@
 import {Devvit} from "@devvit/public-api";
 import {RoundedImage, RoundedImageProps} from "devvit-helpers";
+import {colors} from "../pages/game/gamePageConstants.js";
 
 export type GameImageProps = {
     onExpandPress?: () => void | Promise<void>
@@ -9,26 +10,26 @@ export type GameImageProps = {
 export const GameImage = (props: GameImageProps) => (
     <zstack alignment="center middle" height={props.imageHeight} width={props.imageWidth}>
         <RoundedImage {...props}>
-            <zstack height="100%" width="100%" grow>
-                <vstack height={props.imageHeight} alignment="end bottom" padding="none" width="100%">
+            <zstack grow height="100%" width="100%">
+                <vstack alignment="end bottom" height={props.imageHeight} padding="none" width="100%">
 
-                    <hstack padding="none" alignment="end bottom" width="100%">
+                    <hstack alignment="end bottom" padding="none" width="100%">
                         <spacer grow/>
                         <vstack padding="xsmall">
-                            {props.onExpandPress && <vstack darkBackgroundColor="rgba(0, 0, 0, 0.5)" lightBackgroundColor="rgba(255, 255, 255, 0.5)" cornerRadius="full" padding="none">
-                                <button onPress={props.onExpandPress} appearance="plain" icon="expand-right-fill" size="small"/>
+                            {props.onExpandPress && <vstack cornerRadius="full" darkBackgroundColor={colors.backgroundDarkTag} lightBackgroundColor={colors.backgroundLightTag} padding="none">
+                                <button appearance="plain" darkTextColor={colors.textDarkTag} icon="expand-right-fill" lightTextColor={colors.textLightTag} onPress={props.onExpandPress} size="small"/>
                             </vstack>}
                         </vstack>
                     </hstack>
                 </vstack>
 
-                <vstack height={props.imageHeight} alignment="end bottom" padding="none" width="100%">
-                    <hstack padding="none" alignment="end bottom" width="100%">
+                <vstack alignment="end bottom" height={props.imageHeight} padding="none" width="100%">
+                    <hstack alignment="end bottom" padding="none" width="100%">
                         {props.children ? (
                             <vstack padding="xsmall">
-                                <hstack darkBackgroundColor="rgba(0, 0, 0, 0.5)" lightBackgroundColor="rgba(255, 255, 255, 0.5)" cornerRadius="full" padding="none">
+                                <hstack cornerRadius="full" darkBackgroundColor={colors.backgroundDarkTag} lightBackgroundColor={colors.backgroundLightTag} padding="none">
                                     <spacer size="xsmall"/>
-                                    <text {...props} selectable={false} onPress={props.onAttributionPress}>
+                                    <text {...props} darkColor={colors.textDarkTag} lightColor={colors.textLightTag} onPress={props.onAttributionPress} selectable={false}>
                                         {props.children}
                                     </text>
                                     <spacer size="xsmall"/>

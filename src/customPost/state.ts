@@ -8,6 +8,7 @@ import {ManagerPageState} from "./pages/manager/managerState.js";
 import {AppSettings, getAppSettings} from "../settings.js";
 import {LoadState} from "../types/loadState.js";
 import {useAsyncState, UseAsyncStateResult} from "../utils/useAsyncState.js";
+import {PostDirection} from "../utils/post.js";
 
 export class CustomPostState {
     // Core states
@@ -135,8 +136,8 @@ export class CustomPostState {
         return this.context.uiEnvironment?.dimensions ?? {height: 320, width: 379, scale: 3.5};
     }
 
-    get reduceSize (): boolean {
-        return this.uiDims.width < 400;
+    get layout (): PostDirection {
+        return this.uiDims.width > this.uiDims.height && this.uiDims.width > 400 ? "horizontal" : "vertical";
     }
 
     protected set currentPage (page: PageName) {

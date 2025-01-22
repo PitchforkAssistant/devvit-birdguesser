@@ -11,6 +11,12 @@ import {shareForm, ShareFormSubmitData} from "../../../forms/shareForm.js";
 import {GameChannelPacket, GameOverlay} from "./gamePageTypes.js";
 import {LoadState} from "../../../types/loadState.js";
 import {useAsyncState, UseAsyncStateResult} from "../../../utils/useAsyncState.js";
+import {BirdNerdImage} from "../../../types/birdNerd/image.js";
+import {BirdNerdOutcome} from "../../../types/birdNerd/outcome.js";
+import {choiceCharacterWidth, choiceHeightColumn, choiceHeightRow, defaultAspectRatio, guessRowHeight, horizontalLayoutPadding, verticalLayoutPadding, placeholderBirdNerdImage} from "./gamePageConstants.js";
+import {defaultAppSettings} from "../../../settings.js";
+import {getChoicesRowCount} from "../../components/choicesRow.js";
+import {getChoicesColumnCount} from "../../components/choicesColumn.js";
 
 export const gameChannelName = "birdNerdGame";
 
@@ -157,20 +163,43 @@ export class GamePageState {
         this.overlay = overlay;
     }
 
-    get image (): string | null {
-        return this._currentPartialGame.data?.images[0]?.url ?? null;
+    get image (): BirdNerdImage {
+        return this._currentPartialGame.data?.images[0] ?? placeholderBirdNerdImage;
     }
 
-    get imageAttribution (): string | null {
-        return this._currentPartialGame.data?.images[0]?.attribution ?? null;
+    get imageDims (): [number, number] {
+        if (!this.image) {
+            return [50, 50];
+        }
+
+        const aspect = this.image.aspectRatio ?? defaultAspectRatio;
+
+        // Because the Devvit <image> element doesn't support percentage-based sizing or a grow property,
+        // we need to calculate the best possible image size in pixels based on the estimated size of the other UI elements.
+        const guessesHeight = (this.chances ?? defaultAppSettings.defaultChances) * guessRowHeight;
+        const choicesHeight = this.postState.layout === "horizontal" ? 0 : getChoicesRowCount(this.choices, choiceCharacterWidth, this.postState.uiDims.width) * choiceHeightRow;
+        const paddingHeight = (this.postState.layout === "horizontal" ? 4 : 5) * (this.postState.layout === "horizontal" ? horizontalLayoutPadding : verticalLayoutPadding);
+        const usedHeight = guessesHeight + choicesHeight + paddingHeight;
+        const maxImageHeight = Math.max(this.postState.uiDims.height - usedHeight, 10);
+
+        const choicesWidth = this.postState.layout === "vertical" ? 0 : getChoicesColumnCount(this.choices, choiceHeightColumn, this.postState.uiDims.height) * choiceCharacterWidth * this.slotWidth;
+        const paddingWidth = (this.postState.layout === "vertical" ? 2 : 3) * (this.postState.layout === "horizontal" ? horizontalLayoutPadding : verticalLayoutPadding);
+        const usedWidth = choicesWidth + paddingWidth;
+        const maxImageWidth = Math.max(this.postState.uiDims.width - usedWidth, 10);
+
+        // We want to preserve aspect ratio, but we also want to fill all available space.
+        // If the imageWidth would result in the image being too tall, we'll need to scale based on maxImageHeight instead.
+        // Otherwise we'll get the height based on the width we calculated.
+        const imageWidth = Math.min(maxImageWidth, maxImageHeight * aspect);
+        if (imageWidth / aspect > maxImageHeight) {
+            return [maxImageHeight * aspect, maxImageHeight];
+        } else {
+            return [imageWidth, imageWidth / aspect];
+        }
     }
 
-    get imageAttributionUrl (): string | null {
-        return this._currentPartialGame.data?.images[0]?.attributionUrl ?? null;
-    }
-
-    get imageAspectRatio (): number {
-        return this._currentPartialGame.data?.images[0]?.aspectRatio ?? 2;
+    get slotWidth (): number {
+        return (max(this.choices.map(choice => choice.length)) ?? 0) + (this.postState.layout === "horizontal" ? 2 : 1);
     }
 
     get choices (): string[] {
@@ -192,15 +221,38 @@ export class GamePageState {
         return this._currentPartialGame.data?.chances ?? (this.postState.appSettings?.defaultChances ?? null);
     }
 
-    get finished (): boolean {
-        if (!this.guesses || !this.guesses.length) {
-            return false;
+    get outcome (): BirdNerdOutcome | null {
+        if (!this.isLoaded || !this.chances || !this.guesses.length) {
+            return null;
         }
-        return this.guesses.length >= (this.chances ?? 0) || this.guesses.some(guess => guess.every(word => word.result === "correct"));
+
+        const outcome: BirdNerdOutcome = {
+            guesses: this.guesses.length,
+            result: undefined,
+        };
+
+        // If any of the guesses were all green, it's a win. We don't really care about which guess it was.
+        if (this.guesses.some(guess => guess.every(word => word.result === "correct"))) {
+            outcome.result = "won";
+            return outcome;
+        }
+
+        // We already know none of the guesses were all correct, so if we haven't run out of chances yet, there's no outcome.
+        if (this.guesses.length < this.chances) {
+            return null;
+        }
+
+        // We didn't win and we don't have any more chances, so we lost.
+        outcome.result = "lost";
+        return outcome;
+    }
+
+    get finished (): boolean {
+        return this.outcome !== null;
     }
 
     get won (): boolean {
-        return this.guesses.some(guess => guess.every(word => word.result === "correct"));
+        return this.outcome?.result === "won";
     }
 
     // Use previous guess results to determine which word can't be in the answer, account for duplicate words
@@ -230,8 +282,6 @@ export class GamePageState {
     appendGuess = (guess: BirdNerdGuess) => {
         this.guesses = [...this.guesses, guess];
     };
-
-    getSlotWidth = () => (max(this.choices.map(choice => choice.length)) ?? 0) + (this.postState.reduceSize ? 0 : 2);
 
     sendToChannel = async (message: Omit<GameChannelPacket, "gameId">) => {
         if (!this.context.userId || !this.currentGameId) {
@@ -339,10 +389,10 @@ export class GamePageState {
     };
 
     attributionPressed = () => {
-        if (!this.imageAttributionUrl) {
+        if (!this.image?.attributionUrl) {
             return;
         }
-        this.context.ui.navigateTo(this.imageAttributionUrl);
+        this.context.ui.navigateTo(this.image.attributionUrl);
     };
 
     sharePressed = async () => {
@@ -358,7 +408,7 @@ export class GamePageState {
             contains: "🟨",
         };
         const guessesText = this.guesses.map(guess => `${guess.map(word => `${emojiMap[word.result]}`).join("")}`).reverse().join("  \n");
-        this.context.ui.showForm(this._shareFormKey, {defaultValues: {comment: this.won ? `I got it in ${this.guesses.length}!\n\n${guessesText}` : `I didn't get it!\n\n&nbsp;\n\n${guessesText}`}});
+        this.context.ui.showForm(this._shareFormKey, {defaultValues: {comment: this.outcome?.result === "won" ? `I got it in ${this.guesses.length}!\n\n${guessesText}` : `I didn't get it!\n\n&nbsp;\n\n${guessesText}`}});
     };
 
     shareSubmit = async (data: ShareFormSubmitData) => {

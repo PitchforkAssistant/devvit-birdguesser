@@ -1,26 +1,27 @@
 import {Devvit} from "@devvit/public-api";
 import {CustomPostState} from "../../state.js";
+import {colors} from "../game/gamePageConstants.js";
 
 export const ManagerPage = (state: CustomPostState) => {
     const managerState = state.PageStates?.manager;
 
     return (
 
-        <vstack alignment="center top" width="100%" height="100%">
-            <hstack padding="medium" alignment="center middle" minWidth="100%" border="thick">
-                <vstack backgroundColor="rgba(0,0,0,0.5)" cornerRadius="full" padding="xsmall">
-                    <button icon="back" size="small" onPress={() => state.changePage("game")}/>
-                </vstack>
-                <spacer grow/>
-                <vstack padding="xsmall" alignment="center middle" gap="small">
-                    <text style="heading" size="xlarge">Management Options</text>
-                </vstack>
-                <spacer grow/>
+        <vstack alignment="center top" height="100%" width="100%">
+            <hstack alignment="center middle" minWidth="100%" padding="medium">
                 <hstack padding="small">
-                    <spacer size="large"/>
+                    <spacer size="medium"/>
                 </hstack>
+                <spacer grow/>
+                <vstack alignment="center middle" gap="small" padding="xsmall">
+                    <text color={colors.text} size="xlarge" style="heading">Moderator Options</text>
+                </vstack>
+                <spacer grow/>
+                <vstack backgroundColor={colors.backgroundSecondary} border="thick" borderColor={colors.border} cornerRadius="full" onPress={() => state.changePage("game")} padding="small">
+                    <icon color={colors.text} name="close" size="small"/>
+                </vstack>
             </hstack>
-            <vstack alignment="top center" gap="small" padding="small" width="100%" grow>
+            <vstack alignment="top center" border="thick" borderColor={colors.border} cornerRadius="medium" gap="small" padding="small">
                 <vstack alignment="center middle" gap="medium" padding="medium">
                     <button appearance="secondary" onPress={async () => managerState.updatePreviewPressed()}>Update Post Preview</button>
                     <button appearance="caution" onPress={async () => managerState.editRawGamePressed()}>Edit Raw Game Data</button>

@@ -5,67 +5,124 @@ import {GameImage} from "../../components/gameImage.js";
 import {AnswerRow} from "../../components/answerRow.js";
 import {GuessRow} from "../../components/guessRow.js";
 import {ChoicesColumn} from "../../components/choicesColumn.js";
-import {OverlayImage} from "../../components/overlayImage.js";
+import {ImageOverlay} from "../../components/imageOverlay.js";
 import {HelpOverlay} from "../../components/helpOverlay.js";
+import {colors} from "./gamePageConstants.js";
 
 export const GamePage = (postState: CustomPostState) => {
     const game = postState.PageStates.game;
 
-    let direction: "columns" | "rows" = "columns";
+    if (!game.isLoaded || !game.answerShape || !game.chances || !game.choices || !game.currentGameId) {
+        postState.changePage("noGame");
+        return <vstack alignment="middle center" backgroundColor={colors.background} grow height="100%" width="100%"><icon name="load" size="large"/></vstack>;
+    }
+
+    const reduceSize = postState.layout === "vertical";
+
+    const [imageWidth, imageHeight] = game.imageDims;
+    const gameImage = <GameImage
+        cornerRadius="medium"
+        imageHeight={`${imageHeight}px`}
+        imageWidth={`${imageWidth}px`}
+        onAttributionPress={game.attributionPressed}
+        onExpandPress={game.expandImagePressed}
+        size="xsmall"
+        style="metadata"
+        url={game.image.url}>
+        {game.image.attribution ?? ""}
+    </GameImage>;
+
+    const answerRow = <AnswerRow
+        answerShape={game.answerShape}
+        currentGuess={game.currentGuess}
+        disableSubmit={game.finished}
+        onSharePress={game.sharePressed}
+        onSlotPress={game.slotPressed}
+        onSubmitPress={game.submitPressed}
+        reduceSize={reduceSize}
+        slotWidth={game.slotWidth}
+        totalGuesses={game.guesses.length}
+        won={game.won}/>;
+
+    const guessRow = <GuessRow
+        answerShape={game.answerShape}
+        chances={game.chances}
+        guesses={game.guesses}
+        reduceSize={reduceSize}
+        slotWidth={game.slotWidth}/>;
+
     let gameContent = null;
-    let imageWidth: Devvit.Blocks.SizePixels = `${postState.uiDims.height * game.imageAspectRatio}px`;
-    let imageHeight: Devvit.Blocks.SizePixels = `${postState.uiDims.height}px`;
-    if (postState.uiDims.width - postState.uiDims.height > 150 && !postState.reduceSize) {
-        direction = "columns";
-        imageWidth = `${Math.min(postState.uiDims.height * (game.imageAspectRatio * 0.35), postState.uiDims.width * 0.7)}px`;
-        imageHeight = `${postState.uiDims.height * 0.35}px`;
+    switch (postState.layout) {
+    case "horizontal":
         gameContent = (
-            <hstack alignment="start top" width="100%" height="100%" gap="none" padding="none">
-                {game.choices && !game.finished && <ChoicesColumn disableChoice={game.notInAnswer} uiDims={postState.uiDims} choices={game.choices} selected={game.selected} onChoicePress={choice => game.choicePressed(choice)} reduceSize={postState.reduceSize}/>}
+            <hstack alignment="start top" gap="none" height="100%" padding="none" width="100%">
+                {!game.finished && <ChoicesColumn choices={game.choices} disableChoice={game.notInAnswer} onChoicePress={choice => game.choicePressed(choice)} reduceSize={reduceSize} selected={game.selected} uiDims={postState.uiDims}/>}
                 <spacer grow/>
-                <vstack alignment="center top" maxWidth="70%" height="100%" gap="none" padding="none">
-                    <spacer grow/>
-                    {game.image && <GameImage onExpandPress={game.expandImagePressed} url={game.image} imageWidth={imageWidth} imageHeight={imageHeight} cornerRadius="medium" style="metadata" size="xsmall" onAttributionPress={game.attributionPressed}>{game.imageAttribution ?? ""}</GameImage>}
-                    <spacer size="xsmall" grow/>
-                    {game.answerShape && <AnswerRow totalGuesses={game.guesses.length} won={game.won} answerShape={game.answerShape} currentGuess={game.currentGuess} getSlotWidth={game.getSlotWidth} onSlotPress={game.slotPressed} onSubmitPress={game.submitPressed} onSharePress={game.sharePressed} reduceSize={postState.reduceSize} disableSubmit={game.finished}/>}
-                    <spacer size="small" grow/>
-                    {game.chances && <GuessRow answerShape={game.answerShape} guesses={game.guesses} chances={game.chances} getSlotWidth={game.getSlotWidth} reduceSize={postState.reduceSize} disableSubmit={game.finished}/>}
-                    <spacer grow/>
+                <vstack alignment="center top" gap="none" height="100%" padding="none">
+                    <spacer grow size="xsmall"/>
+                    {gameImage}
+                    <spacer grow size="xsmall"/>
+                    {answerRow}
+                    <spacer grow size="xsmall"/>
+                    {guessRow}
+                    <spacer grow size="xsmall"/>
                 </vstack>
                 <spacer grow/>
             </hstack>
         );
-    } else {
-        direction = "rows";
-        imageWidth = `${Math.min(postState.uiDims.height * (game.imageAspectRatio * 0.4), postState.uiDims.width)}px`;
-        imageHeight = `${postState.uiDims.height * 0.4}px`;
+        break;
+    case "vertical":
         gameContent = (
-            <vstack alignment="center top" width="100%" height="100%" gap="none" padding="none">
-                <spacer grow/>
-                {game.image && <GameImage onExpandPress={game.expandImagePressed} url={game.image} imageWidth={imageWidth} imageHeight={imageHeight} cornerRadius="medium" style="metadata" size="xsmall" onAttributionPress={game.attributionPressed}>{game.imageAttribution ?? ""}</GameImage>}
-                <spacer size="xsmall" grow/>
-                {game.choices && !game.finished && <ChoicesRow disableChoice={game.notInAnswer} uiDims={postState.uiDims} choices={game.choices} selected={game.selected} onChoicePress={choice => game.choicePressed(choice)} reduceSize={postState.reduceSize}/>}
-                <spacer size="xsmall" grow/>
-                {game.answerShape && <AnswerRow totalGuesses={game.guesses.length} won={game.won} answerShape={game.answerShape} currentGuess={game.currentGuess} getSlotWidth={game.getSlotWidth} onSlotPress={game.slotPressed} onSubmitPress={game.submitPressed} onSharePress={game.sharePressed} reduceSize={postState.reduceSize} disableSubmit={game.finished}/>}
-                <spacer size="small" grow/>
-                {game.chances && <GuessRow answerShape={game.answerShape} guesses={game.guesses} chances={game.chances} getSlotWidth={game.getSlotWidth} reduceSize={postState.reduceSize} disableSubmit={game.finished}/>}
-                <spacer grow/>
+            <vstack alignment="center top" gap="none" height="100%" padding="none" width="100%">
+                <spacer grow size="xsmall"/>
+                {gameImage}
+                <spacer grow size="xsmall"/>
+                {!game.finished && <ChoicesRow choices={game.choices} disableChoice={game.notInAnswer} onChoicePress={choice => game.choicePressed(choice)} reduceSize={reduceSize} selected={game.selected} uiDims={postState.uiDims}/>}
+                <spacer grow size="xsmall"/>
+                {answerRow}
+                <spacer grow size="xsmall"/>
+                {guessRow}
+                <spacer grow size="xsmall"/>
             </vstack>
         );
+        break;
+    }
+
+    let overlay = null;
+    switch (game.overlay) {
+    case "help":
+        overlay = <HelpOverlay
+            direction={postState.layout}
+            imageHeight={imageHeight}
+            imageWidth={imageWidth}/>;
+        break;
+    case "image":
+        overlay = <ImageOverlay
+            height="100%"
+            imageHeight={`${postState.uiDims.height}px`}
+            imageWidth={`${postState.uiDims.height}px`}
+            onAttributionPress={game.attributionPressed}
+            resizeMode="fit"
+            size="xsmall"
+            style="metadata"
+            url={game.image.url}
+            width="100%">
+            {game.image.attribution ?? ""}
+        </ImageOverlay>;
+        break;
     }
 
     return (
-        <zstack alignment="center top" width="100%" height="100%">
-            {!!game.currentGameId && (!game._guesses.loading && (!!game._currentPartialGame.data || !game._currentPartialGame.loading)) ? gameContent : <vstack alignment="middle center" backgroundColor="#D3DAC2" width="100%" height="100%" grow><icon name="load" size="large"/></vstack>}
-            {game.overlay === "help" && <HelpOverlay direction={direction} imageWidth={imageWidth} imageHeight={imageHeight}/>}
-            {game.overlay === "image" && game.image && <OverlayImage url={game.image} width="100%" height="100%" imageWidth={`${postState.uiDims.height}px`} imageHeight={`${postState.uiDims.height}px`} resizeMode="fit" style="metadata" size="xsmall" onAttributionPress={game.attributionPressed}>{game.imageAttribution ?? ""}</OverlayImage>}
-            <vstack alignment="center middle" width="100%" height="100%">
+        <zstack alignment="center top" height="100%" width="100%">
+            {gameContent}
+            {overlay}
+            <vstack alignment="center middle" height="100%" width="100%">
                 <spacer grow/>
-                <hstack padding="medium" alignment="center middle" minWidth="100%">
+                <hstack alignment="center middle" minWidth="100%" padding="medium">
                     <spacer grow/>
                     {(game.overlay !== "none" || !game.finished) &&
-                        <vstack backgroundColor={game.overlay === "none" ? "rgba(255, 255, 255, 0.2)" : "#dce1ce"} cornerRadius="full" padding="small" onPress={game.overlay === "none" ? () => game.changeOverlay("help") : () => game.changeOverlay("none")}>
-                            <icon name={game.overlay === "none" ? "help" : "close-fill"} size="small" color="#111"/>
+                        <vstack backgroundColor={colors.backgroundSecondary} border="thick" borderColor={colors.border} cornerRadius="full" onPress={game.overlay === "none" ? () => game.changeOverlay("help") : () => game.changeOverlay("none")} padding="small">
+                            <icon color={colors.text} name={game.overlay === "none" ? "help" : "close-fill"} size="small"/>
                         </vstack>
                     }
                 </hstack>

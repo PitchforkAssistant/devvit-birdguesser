@@ -3,6 +3,7 @@ import {UIDimensions} from "@devvit/protos";
 import {BirdNerdGamePartial} from "../../types/birdNerd/partialGame.js";
 import {BirdNerdImage} from "../../types/birdNerd/image.js";
 import {GameImage} from "./gameImage.js";
+import {colors} from "../pages/game/gamePageConstants.js";
 
 export type AdvancedPreviewProps = {
     partialGame: BirdNerdGamePartial;
@@ -19,17 +20,17 @@ export const AdvancedPreview = (props: AdvancedPreviewProps) => {
     const imageHeight: Devvit.Blocks.SizePixels = `${props.uiDims.height * 0.4}px`;
     return (
         <blocks height="tall">
-            <zstack width="100%" height="100%" backgroundColor="#D3DAC2" grow>
-                <vstack alignment="center top" width="100%" height="100%" gap="none" padding="none" grow>
+            <zstack backgroundColor={colors.background} grow height="100%" width="100%">
+                <vstack alignment="center top" gap="none" grow height="100%" padding="none" width="100%">
                     <spacer grow/>
-                    {image && <GameImage url={image.url} imageWidth={imageWidth} imageHeight={imageHeight} cornerRadius="medium" style="metadata" size="xsmall" >{image.attribution ?? ""}</GameImage>}
-                    <spacer size="xsmall" grow/>
-                    <hstack alignment="center middle" border="thick" borderColor="rgba(255, 255, 255, 0.2)" backgroundColor="rgba(255, 255, 255, 0.2)" cornerRadius="medium" padding="small" maxWidth="70%">
-                        <spacer width="355px" height="52px" grow/>
+                    {image && <GameImage cornerRadius="medium" imageHeight={imageHeight} imageWidth={imageWidth} size="xsmall" style="metadata" url={image.url} >{image.attribution ?? ""}</GameImage>}
+                    <spacer grow size="xsmall"/>
+                    <hstack alignment="center middle" backgroundColor={colors.backgroundSecondary} border="thick" borderColor={colors.border} cornerRadius="medium" maxWidth="70%" padding="small">
+                        <spacer grow height="52px" width="355px"/>
                     </hstack>
-                    <spacer size="small" grow/>
-                    <vstack gap="small" alignment="center middle" border="thick" borderColor="rgba(255, 255, 255, 0.2)" backgroundColor="rgba(255, 255, 255, 0.2)" cornerRadius="medium" padding="small" maxWidth="70%">
-                        <spacer width="306px" height="140px" grow/>
+                    <spacer grow size="small"/>
+                    <vstack alignment="center middle" backgroundColor={colors.backgroundSecondary} border="thick" borderColor={colors.border} cornerRadius="medium" gap="small" maxWidth="70%" padding="small">
+                        <spacer grow height="140px" width="306px"/>
                     </vstack>
                     <spacer grow/>
                 </vstack>

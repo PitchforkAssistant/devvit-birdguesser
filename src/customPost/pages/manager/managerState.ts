@@ -31,6 +31,10 @@ export class ManagerPageState {
             this.context.ui.showToast("No post ID found!");
             return;
         }
+
+        // Force server-side execution, otherwise server-functions may be undefined
+        await this.context.reddit.getCurrentUser();
+
         await queuePreview(this.context.redis, this.context.postId);
         this.context.ui.showToast("Preview update queued!");
     };
@@ -60,6 +64,9 @@ export class ManagerPageState {
             console.warn("No post ID found when trying to update game data.");
             return;
         }
+
+        // Force server-side execution, otherwise server-functions may be undefined
+        await this.context.reddit.getCurrentUser();
 
         try {
             const rawGame = JSON.parse(rawGameString) as unknown;
@@ -101,6 +108,9 @@ export class ManagerPageState {
             this.context.ui.showToast("No reset target selected, aborting.");
             return;
         }
+
+        // Force server-side execution, otherwise server-functions may be undefined
+        await this.context.reddit.getCurrentUser();
 
         if (resetTarget === "all") {
             await resetBirdNerdGuesses(this.context.redis, this.currentGameId);
