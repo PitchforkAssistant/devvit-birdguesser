@@ -14,9 +14,10 @@ export type ChoicesRowProps = {
 
 export const ChoicesRow = (props: ChoicesRowProps) => {
     const width = props.uiDims?.width ?? 512;
-    const totalLetters = props.choices.join(" ").length;
-    const lettersPerRow = Math.floor(width / (props.reduceSize ? 8 : 10));
-    const rows: string[][] = chunkEvenly(props.choices, totalLetters / lettersPerRow);
+    const charCount = props.choices.join(" ").length;
+    const charsPerRow = Math.floor(width / (props.reduceSize ? 8 : 10));
+    const wordsPerRow = Math.ceil(props.choices.length / (charCount / charsPerRow));
+    const rows: string[][] = chunkEvenly(props.choices, wordsPerRow);
 
     return (<vstack gap="small" border="thick" borderColor="rgba(255, 255, 255, 0.2)" backgroundColor="rgba(255, 255, 255, 0.2)" cornerRadius="medium" alignment="center middle">
         {rows.map(row => (
