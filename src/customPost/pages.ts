@@ -4,6 +4,7 @@ import {HelpPage} from "./pages/help/helpPage.js";
 import {ManagerPage} from "./pages/manager/managerPage.js";
 import {ManagerPageState} from "./pages/manager/managerState.js";
 import {NoGamePage} from "./pages/noGame/noGamePage.js";
+import {NoGamePageState} from "./pages/noGame/noGameState.js";
 import {CustomPostState} from "./state.js";
 
 export type PageName = "game" | "noGame" | "help" | "manager";
@@ -28,7 +29,7 @@ export const Page = ({state}: PageProps) => Pages[state.currentPage](state);
 export const PageStateTypes = {
     game: GamePageState,
     manager: ManagerPageState,
-    noGame: undefined,
+    noGame: NoGamePageState,
     help: undefined,
 };
 

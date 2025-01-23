@@ -10,6 +10,7 @@ import {useAsyncState, UseAsyncStateResult} from "../utils/useAsyncState.js";
 import {PageName, PageStateList} from "./pages.js";
 import {GamePageState} from "./pages/game/gameState.js";
 import {ManagerPageState} from "./pages/manager/managerState.js";
+import {NoGamePageState} from "./pages/noGame/noGameState.js";
 
 export class CustomPostState {
     // Core states
@@ -79,7 +80,7 @@ export class CustomPostState {
         this.PageStates = {
             game: new GamePageState(this),
             manager: new ManagerPageState(this),
-            noGame: undefined,
+            noGame: new NoGamePageState(this),
             help: undefined,
         };
     }
@@ -146,6 +147,12 @@ export class CustomPostState {
         if (this.currentPage === page) {
             return;
         }
+
+        if (page === "noGame") {
+            this.PageStates.noGame.counter = 0;
+            this.PageStates.noGame.interval.start();
+        }
+
         this.currentPage = page;
     }
 }
