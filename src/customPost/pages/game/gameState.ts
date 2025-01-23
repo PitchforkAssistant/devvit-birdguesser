@@ -122,7 +122,7 @@ export class GamePageState {
     }
     get imageDims (): [number, number] {
         if (!this.image) {
-            return [50, 50];
+            return [100, 100];
         }
 
         const aspect = this.image.aspectRatio ?? defaultAspectRatio;
@@ -131,12 +131,12 @@ export class GamePageState {
         // we need to calculate the best possible image size in pixels based on the estimated size of the other UI elements.
         const guessesHeight = (this.chances ?? defaultAppSettings.defaultChances) * guessRowHeight;
         const choicesHeight = this.postState.layout === "horizontal" ? 0 : getChoicesRowCount(this.choices, choiceCharacterWidth, this.postState.uiDims.width) * choiceHeightRow;
-        const paddingHeight = (this.postState.layout === "horizontal" ? 4 : 5) * (this.postState.layout === "horizontal" ? horizontalLayoutPadding : verticalLayoutPadding);
+        const paddingHeight = this.postState.layout === "horizontal" ? 4 * horizontalLayoutPadding : 5 * verticalLayoutPadding;
         const usedHeight = guessesHeight + choicesHeight + paddingHeight;
         const maxImageHeight = Math.max(this.postState.uiDims.height - usedHeight, 10);
 
         const choicesWidth = this.postState.layout === "vertical" ? 0 : getChoicesColumnCount(this.choices, choiceHeightColumn, this.postState.uiDims.height) * choiceCharacterWidth * this.slotWidth;
-        const paddingWidth = (this.postState.layout === "vertical" ? 2 : 3) * (this.postState.layout === "horizontal" ? horizontalLayoutPadding : verticalLayoutPadding);
+        const paddingWidth = this.postState.layout === "vertical" ? 2 * verticalLayoutPadding : 3 * horizontalLayoutPadding;
         const usedWidth = choicesWidth + paddingWidth;
         const maxImageWidth = Math.max(this.postState.uiDims.width - usedWidth, 10);
 

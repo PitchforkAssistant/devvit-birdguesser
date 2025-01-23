@@ -31,7 +31,7 @@ export async function onPreviewUpdaterJob (event: ScheduledJobEvent<undefined>, 
             } else {
                 await post.setCustomPostPreview(() => advancedPreviewMaker({
                     partialGame,
-                    uiDims: {width: 512, height: 512, scale: 3.5},
+                    uiDims: {width: 700, height: 512, scale: 1},
                 }));
             }
             console.log(`Updated preview for post ${postId}`);
