@@ -4,7 +4,7 @@ import {BirdNerdAnswerShape} from "../../types/birdNerd/partialGame.js";
 import {colors} from "../pages/game/gamePageConstants.js";
 import {Joiner} from "./joiner.js";
 
-export type AnswerRowProps = {
+export type AnswerBoxProps = {
     answerShape: BirdNerdAnswerShape;
     currentGuess: string[];
     slotWidth: number;
@@ -17,7 +17,7 @@ export type AnswerRowProps = {
     won: boolean;
 };
 
-export const AnswerRow = (props: AnswerRowProps) => (
+export const AnswerBox = (props: AnswerBoxProps) => (
     <hstack alignment="center middle" backgroundColor={colors.backgroundSecondary} border="thick" borderColor={colors.border} cornerRadius="medium" padding={props.reduceSize ? "xsmall" : "small"}>
         <spacer size="xsmall"/>
         {!props.disableSubmit

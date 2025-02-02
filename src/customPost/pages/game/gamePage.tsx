@@ -1,10 +1,10 @@
 import {Devvit} from "@devvit/public-api";
 
-import {AnswerRow} from "../../components/answerRow.js";
+import {AnswerBox} from "../../components/answerBox.js";
 import {ChoicesColumn} from "../../components/choicesColumn.js";
 import {ChoicesRow} from "../../components/choicesRow.js";
 import {GameImage} from "../../components/gameImage.js";
-import {GuessRow} from "../../components/guessRow.js";
+import {GuessBox} from "../../components/guessBox.js";
 import {HelpOverlay} from "../../components/helpOverlay.js";
 import {ImageOverlay} from "../../components/imageOverlay.js";
 import {CustomPostState} from "../../state.js";
@@ -33,7 +33,7 @@ export const GamePage = (postState: CustomPostState) => {
         {game.image.attribution ?? ""}
     </GameImage>;
 
-    const answerRow = <AnswerRow
+    const answerRow = <AnswerBox
         answerShape={game.answerShape}
         currentGuess={game.currentGuess}
         disableSubmit={game.finished}
@@ -45,7 +45,7 @@ export const GamePage = (postState: CustomPostState) => {
         totalGuesses={game.guesses.length}
         won={game.won}/>;
 
-    const guessRow = <GuessRow
+    const guessRow = <GuessBox
         answerShape={game.answerShape}
         chances={game.chances}
         guesses={game.guesses}

@@ -6,7 +6,7 @@ import {BirdNerdAnswerShape} from "../../types/birdNerd/partialGame.js";
 import {colors} from "../pages/game/gamePageConstants.js";
 import {Joiner} from "./joiner.js";
 
-export type GuessRowProps = {
+export type GuessBoxProps = {
     answerShape: BirdNerdAnswerShape;
     guesses: BirdNerdGuesses;
     chances: number;
@@ -37,7 +37,7 @@ export function getGuessBackgroundColor (guess: BirdNerdGuess): string | undefin
     return undefined;
 }
 
-export const GuessRow = (props: GuessRowProps) => {
+export const GuessBox = (props: GuessBoxProps) => {
     // Filled to be equal to length of props.chances but unused guesses just being empty
     const paddedGuesses: BirdNerdGuesses = Array<BirdNerdGuess>(props.chances - props.guesses.length).fill(Array<BirdNerdGuessedWord>(props.answerShape.length).fill({word: "", result: "incorrect"})).concat(props.guesses);
     return (
