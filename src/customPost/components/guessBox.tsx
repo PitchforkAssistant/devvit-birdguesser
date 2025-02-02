@@ -4,7 +4,7 @@ import {BirdNerdGuessResult} from "../../types/birdNerd/guess.js";
 import {BirdNerdGuess, BirdNerdGuessedWord, BirdNerdGuesses} from "../../types/birdNerd/guess.js";
 import {BirdNerdAnswerShape} from "../../types/birdNerd/partialGame.js";
 import {colors} from "../pages/game/gamePageConstants.js";
-import {Joiner} from "./joiner.js";
+import {WordSlot} from "./word.js";
 
 export type GuessBoxProps = {
     answerShape: BirdNerdAnswerShape;
@@ -46,17 +46,15 @@ export const GuessBox = (props: GuessBoxProps) => {
                 <hstack alignment="center middle" backgroundColor={getGuessBackgroundColor(guess)} border={guess.every(word => word.result === "correct") ? "thick" : "none"} borderColor={getGuessBackgroundColor(guess)} cornerRadius="medium">
                     <spacer size="xsmall"/>
                     {guess.map((word, wordIndex) => props.answerShape[wordIndex] ? (
-                        <hstack alignment="center middle" gap="none" grow>
-                            <zstack alignment="center middle" backgroundColor={getGuessedWordBackgroundColor(word.word, word.result)} cornerRadius="small" grow>
-                                <hstack alignment="center middle" grow>
-                                    <text alignment="center middle" darkColor="rgba(255, 255, 255, 0)" grow lightColor="rgba(0, 0, 0, 0)" selectable={false} size={props.reduceSize ? "large" : "xlarge"}>{"_".repeat(props.slotWidth)}</text>
-                                </hstack>
-                                {word && <hstack alignment="center middle" grow>
-                                    <text alignment="center middle" color={colors.text} selectable={false} size={props.reduceSize ? "medium" : "large"} weight="bold">{word.word}</text>
-                                </hstack>}
-                            </zstack>
-                            {wordIndex < props.answerShape.length - 1 && <Joiner joiner={props.answerShape[wordIndex].joiner} reduceSize={props.reduceSize}/>}
-                        </hstack>
+                        <WordSlot
+                            backgroundColor={getGuessedWordBackgroundColor(word.word, word.result)}
+                            color={colors.text}
+                            joiner={wordIndex < props.answerShape.length - 1 ? props.answerShape[wordIndex].joiner : undefined}
+                            reduceSize={props.reduceSize}
+                            slotWidth={props.slotWidth}
+                            underline={false}
+                            word={word.word}
+                        />
                     ) : null)}
                     <spacer size="xsmall"/>
                 </hstack>))};
