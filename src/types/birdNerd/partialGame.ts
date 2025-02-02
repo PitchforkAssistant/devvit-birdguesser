@@ -7,7 +7,7 @@ export type BirdNerdWordPartial = Pick<BirdNerdWord, "joiner">;
 
 export type BirdNerdAnswerShape = BirdNerdWordPartial[];
 
-export type BirdNerdGamePartial = Omit<BirdNerdGame, "answer"> & { answerShape: BirdNerdAnswerShape; };
+export type BirdNerdGamePartial = Omit<BirdNerdGame, "answer" | "endText"> & { answerShape: BirdNerdAnswerShape; };
 
 export function isBirdNerdWordPartial (object: unknown): object is BirdNerdWordPartial {
     if (!object || typeof object !== "object") {

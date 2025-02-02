@@ -1,10 +1,11 @@
-import {Context, FormKey, useChannel, UseChannelResult, useForm, useState, UseStateResult} from "@devvit/public-api";
+import {Context, FormKey, useAsync, UseAsyncResult, useChannel, UseChannelResult, useForm, useState, UseStateResult} from "@devvit/public-api";
 import {ChannelStatus} from "@devvit/public-api/types/realtime.js";
 import {max} from "lodash";
 
 import {shareForm, ShareFormSubmitData} from "../../../forms/shareForm.js";
-import {getBirdNerdGamePartial, getBirdNerdGuesses, getPostGame, makeBirdNerdGuess} from "../../../server/clientRpcs.server.js";
+import {getBirdNerdGamePartial, getBirdNerdGuesses, getPostGame, makeBirdNerdGuess, requestFullGame} from "../../../server/clientRpcs.server.js";
 import {defaultAppSettings} from "../../../settings.js";
+import {BirdNerdGame} from "../../../types/birdNerd/game.js";
 import {BirdNerdGuessResult} from "../../../types/birdNerd/guess.js";
 import {BirdNerdGuess, BirdNerdGuesses} from "../../../types/birdNerd/guess.js";
 import {BirdNerdImage} from "../../../types/birdNerd/image.js";
@@ -35,6 +36,8 @@ export class GamePageState {
     readonly _currentGameId: UseAsyncStateResult<string>;
     readonly _currentPartialGame: UseAsyncStateResult<BirdNerdGamePartial>;
     readonly _guesses: UseAsyncStateResult<BirdNerdGuesses>;
+    // UseAsyncResult
+    readonly _currentFullGame: UseAsyncResult<BirdNerdGame | null>;
     // UseChannelResult
     readonly _channel: UseChannelResult<GameChannelPacket>;
 
@@ -70,6 +73,14 @@ export class GamePageState {
             await this.context.reddit.getSubredditInfoByName("test"); // Workaround for server-side functions not existing in useAsync unless an async function is called first
             return getBirdNerdGamePartial(this.context.redis, this.currentGameId);
         }, {depends: [this.currentGameId, this.reload]});
+
+        this._currentFullGame = useAsync<BirdNerdGame | null>(async () => {
+            if (!this.currentGameId || !this.finished) {
+                return null;
+            }
+            await this.context.reddit.getCurrentUser();
+            return requestFullGame(this.context, this.currentGameId);
+        }, {depends: [this.currentGameId, this.finished, this.reload]});
 
         this._channel = useChannel<GameChannelPacket>({
             name: gameChannelName,
@@ -111,6 +122,9 @@ export class GamePageState {
     get finished (): boolean {
         return this.outcome !== null;
     }
+    get fullGame (): BirdNerdGame | null {
+        return this._currentFullGame.data;
+    }
     get guesses (): BirdNerdGuesses {
         return this._guesses.data ?? [];
     }
@@ -132,7 +146,7 @@ export class GamePageState {
         const guessesHeight = (this.chances ?? defaultAppSettings.defaultChances) * guessRowHeight;
         const choicesHeight = this.postState.layout === "horizontal" ? 0 : getChoicesRowCount(this.choices, choiceCharacterWidth, this.postState.uiDims.width) * choiceHeightRow;
         const paddingHeight = this.postState.layout === "horizontal" ? 4 * horizontalLayoutPadding : 5 * verticalLayoutPadding;
-        const usedHeight = guessesHeight + choicesHeight + paddingHeight;
+        const usedHeight = guessesHeight + choicesHeight + paddingHeight + (this.finished ? verticalLayoutPadding : 0);
         const maxImageHeight = Math.max(this.postState.uiDims.height - usedHeight, 10);
 
         const choicesWidth = this.postState.layout === "vertical" ? 0 : getChoicesColumnCount(this.choices, choiceHeightColumn, this.postState.uiDims.height) * choiceCharacterWidth * this.slotWidth;
@@ -385,7 +399,14 @@ export class GamePageState {
 
         await this.context.reddit.getPostById(this.context.postId ?? "");
 
-        const guessResult = await makeBirdNerdGuess(this.context, this.postState.currentUserId, this.currentGameId, this.currentGuess);
+        const guessResult = await makeBirdNerdGuess(this.context, this.currentGameId, this.currentGuess);
+        if (!guessResult) {
+            console.warn("Guess result was null?");
+            this.context.ui.showToast("Something went wrong with submitting your guess. Please refresh the page and try again.");
+            this.currentGuess = [];
+            this.reload = Date.now(); // Reload, maybe that'll help.
+            return;
+        }
         console.log("Guess result: ", guessResult);
         this.appendGuess(guessResult);
         this.currentGuess = [];

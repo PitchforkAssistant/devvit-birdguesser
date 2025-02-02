@@ -3,6 +3,7 @@ import {Devvit} from "@devvit/public-api";
 import {AnswerBox} from "../../components/answerBox.js";
 import {ChoicesColumn} from "../../components/choicesColumn.js";
 import {ChoicesRow} from "../../components/choicesRow.js";
+import {GameEndBox} from "../../components/gameEndBox.js";
 import {GameImage} from "../../components/gameImage.js";
 import {GuessBox} from "../../components/guessBox.js";
 import {HelpOverlay} from "../../components/helpOverlay.js";
@@ -33,19 +34,26 @@ export const GamePage = (postState: CustomPostState) => {
         {game.image.attribution ?? ""}
     </GameImage>;
 
-    const answerRow = <AnswerBox
-        answerShape={game.answerShape}
-        currentGuess={game.currentGuess}
-        disableSubmit={game.finished}
-        onSharePress={game.sharePressed}
-        onSlotPress={game.slotPressed}
-        onSubmitPress={game.submitPressed}
-        reduceSize={reduceSize}
-        slotWidth={game.slotWidth}
-        totalGuesses={game.guesses.length}
-        won={game.won}/>;
+    const middleBox = game.finished && game.fullGame ?
+        <GameEndBox
+            answer={game.fullGame.answer}
+            endText={game.fullGame.endText}
+            onSharePress={game.sharePressed}
+            reduceSize={reduceSize}
+            slotWidth={game.slotWidth}
+            totalGuesses={game.guesses.length}
+            won={game.won}/>
+        : <AnswerBox
+            answerShape={game.answerShape}
+            currentGuess={game.currentGuess}
+            disableSubmit={game.finished}
+            onSlotPress={game.slotPressed}
+            onSubmitPress={game.submitPressed}
+            reduceSize={reduceSize}
+            slotWidth={game.slotWidth}
+        />;
 
-    const guessRow = <GuessBox
+    const guessBox = <GuessBox
         answerShape={game.answerShape}
         chances={game.chances}
         guesses={game.guesses}
@@ -63,9 +71,9 @@ export const GamePage = (postState: CustomPostState) => {
                     <spacer grow size="xsmall"/>
                     {gameImage}
                     <spacer grow size="xsmall"/>
-                    {answerRow}
+                    {middleBox}
                     <spacer grow size="xsmall"/>
-                    {guessRow}
+                    {guessBox}
                     <spacer grow size="xsmall"/>
                 </vstack>
                 <spacer grow/>
@@ -80,9 +88,9 @@ export const GamePage = (postState: CustomPostState) => {
                 <spacer grow size="xsmall"/>
                 {!game.finished && <ChoicesRow choices={game.choices} disableChoice={game.notInAnswer} onChoicePress={choice => game.choicePressed(choice)} reduceSize={reduceSize} selected={game.selected} uiDims={postState.uiDims}/>}
                 <spacer grow size="xsmall"/>
-                {answerRow}
+                {middleBox}
                 <spacer grow size="xsmall"/>
-                {guessRow}
+                {guessBox}
                 <spacer grow size="xsmall"/>
             </vstack>
         );

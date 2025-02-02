@@ -2,7 +2,7 @@ import {Context, FormKey, useForm} from "@devvit/public-api";
 
 import {editGameForm, EditGameFormSubmitData} from "../../../forms/editGameForm.js";
 import {resetGameForm, ResetGameFormSubmitData} from "../../../forms/resetGameForm.js";
-import {getBirdNerdGame, setBirdNerdGame} from "../../../server/birdNerdServer/birdNerdGames.js";
+import {getBirdNerdGame, setBirdNerdGame} from "../../../server/birdNerdServer/birdNerdGame.server.js";
 import {resetBirdNerdGuesses} from "../../../server/birdNerdServer/playerGuesses.server.js";
 import {isBirdNerdGame} from "../../../types/birdNerd/game.js";
 import {queuePreview} from "../../../utils/previews.js";

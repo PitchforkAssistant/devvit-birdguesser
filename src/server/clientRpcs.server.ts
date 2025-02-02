@@ -6,10 +6,12 @@ import {Context, RedisClient} from "@devvit/public-api";
 import {shuffle} from "lodash";
 
 import {getAppSettings} from "../settings.js";
-import {BirdNerdGuess, BirdNerdGuessedWord} from "../types/birdNerd/guess.js";
+import {BirdNerdGame} from "../types/birdNerd/game.js";
+import {BirdNerdGuess} from "../types/birdNerd/guess.js";
 import {BirdNerdGamePartial} from "../types/birdNerd/partialGame.js";
-import {getBirdNerdGame} from "./birdNerdServer/birdNerdGames.js";
+import {getBirdNerdGame} from "./birdNerdServer/birdNerdGame.server.js";
 import {getBirdNerdGuesses, storeBirdNerdGuesses} from "./birdNerdServer/playerGuesses.server.js";
+import {getPostGame} from "./birdNerdServer/postGameLinks.server.js";
 
 export async function getBirdNerdGamePartial (redis: RedisClient, gameId: string): Promise<BirdNerdGamePartial | null> {
     const fullGame = await getBirdNerdGame(redis, gameId);
@@ -26,12 +28,24 @@ export async function getBirdNerdGamePartial (redis: RedisClient, gameId: string
     };
 }
 
-export async function makeBirdNerdGuess ({redis, settings}: Context, userId: string, gameId: string, guess: string[]): Promise<BirdNerdGuess> {
+export async function makeBirdNerdGuess ({userId, postId, redis, settings}: Context, targetGameId: string, guess: string[]): Promise<BirdNerdGuess | null> {
+    if (!userId || !postId) {
+        console.warn(`makeBirdNerdGuess called without userId (${userId}) or postId (${postId})`);
+        return null;
+    }
+
+    const gameId = await getPostGame(redis, postId);
+    if (gameId !== targetGameId) {
+        console.warn(`makeBirdNerdGuess called with incorrect gameId: ${targetGameId} instead of ${gameId}`);
+        return null;
+    }
+
     const fullGame = await getBirdNerdGame(redis, gameId);
     const existingGuesses = await getBirdNerdGuesses(redis, gameId, userId);
     const appSettings = await getAppSettings(settings);
     if (!fullGame || existingGuesses && existingGuesses.length >= (fullGame.chances ?? appSettings.defaultChances)) {
-        return Array<BirdNerdGuessedWord>(guess.length).fill({word: " ", result: "incorrect"});
+        console.warn("makeBirdNerdGuess called with missing game or too many guesses: ", fullGame, existingGuesses);
+        return null;
     }
 
     // Get a count of all the words in the answer
@@ -72,6 +86,32 @@ export async function makeBirdNerdGuess ({redis, settings}: Context, userId: str
 
     await storeBirdNerdGuesses(redis, gameId, userId, [...existingGuesses || [], gameResult]);
     return gameResult;
+}
+
+export async function requestFullGame ({userId, postId, redis, settings}: Context, gameId: string): Promise<BirdNerdGame | null> {
+    if (!userId || !postId) {
+        console.warn(`makeBirdNerdGuess called without userId (${userId}) or postId (${postId})`);
+        return null;
+    }
+
+    const guesses = await getBirdNerdGuesses(redis, gameId, userId);
+    const appSettings = await getAppSettings(settings);
+
+    // No guesses have been made, so the game is not finished.
+    if (!guesses) {
+        return null;
+    }
+
+    const fullGame = await getBirdNerdGame(redis, gameId);
+    if (!fullGame) {
+        console.warn(`requestFullGame called with missing game: ${gameId}`);
+        return null;
+    }
+
+    if (guesses.some(guess => guess.every(word => word.result === "correct")) || guesses.length >= (fullGame.chances ?? appSettings.defaultChances)) {
+        return fullGame;
+    }
+    return null;
 }
 
 export {getBirdNerdGuesses} from "./birdNerdServer/playerGuesses.server.js";
