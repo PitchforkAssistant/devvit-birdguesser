@@ -17,10 +17,11 @@ export type GameEndBoxProps = {
 export const GameEndBox = (props: GameEndBoxProps) => (
     <vstack alignment="center middle" backgroundColor={colors.backgroundSecondary} border="thick" borderColor={colors.border} cornerRadius="medium" padding={props.reduceSize ? "xsmall" : "small"}>
         <text alignment="center middle" color={colors.text} selectable={false} size={props.reduceSize ? "medium" : "large"} style="body" weight="bold">{props.won ? `You got it in ${props.totalGuesses}!` : "You lost!"}</text>
-        {!props.won ? <text alignment="center middle" color={colors.text} selectable={false} size={props.reduceSize ? "small" : "medium"} style="body">{`It was the ${birdNerdWordsToString(props.answer)}.`}</text> : null}
+        <spacer size="xsmall"/>
+        {props.endText ? <text alignment="center middle" color={colors.text} selectable={false} size={props.reduceSize ? "xsmall" : "small"} style="metadata" wrap>{props.endText}</text> : null}
+        {!props.endText && !props.won ? <text alignment="center middle" color={colors.text} selectable={false} size={props.reduceSize ? "xsmall" : "small"} style="metadata" wrap>{`It was the ${birdNerdWordsToString(props.answer)}.`}</text> : null}
         <spacer size="xsmall"/>
         <button appearance="primary" grow={false} icon="share-fill" onPress={props.onSharePress} size="small">Share Result</button>
         <spacer size="xsmall"/>
-        {props.endText ? <text alignment="center middle" color={colors.text} selectable={false} size={props.reduceSize ? "xsmall" : "small"} style="metadata" wrap>{props.endText}</text> : null}
     </vstack>
 );
