@@ -87,7 +87,7 @@ export const GamePage = (postState: CustomPostState) => {
                 {gameImage}
                 <spacer grow size="xsmall"/>
                 {!game.finished && <ChoicesRow choices={game.choices} disableChoice={game.notInAnswer} onChoicePress={choice => game.choicePressed(choice)} reduceSize={reduceSize} selected={game.selected} uiDims={postState.uiDims}/>}
-                <spacer grow size="xsmall"/>
+                {!game.finished && <spacer grow size="xsmall"/>}
                 {middleBox}
                 <spacer grow size="xsmall"/>
                 {guessBox}
