@@ -12,6 +12,7 @@ import {BirdNerdImage} from "../../../types/birdNerd/image.js";
 import {BirdNerdOutcome} from "../../../types/birdNerd/outcome.js";
 import {BirdNerdAnswerShape, BirdNerdGamePartial} from "../../../types/birdNerd/partialGame.js";
 import {LoadState} from "../../../types/loadState.js";
+import {getGameOutcome} from "../../../utils/outcome.js";
 import {useAsyncState, UseAsyncStateResult} from "../../../utils/useAsyncState.js";
 import {getChoicesColumnCount} from "../../components/choicesColumn.js";
 import {getChoicesRowCount} from "../../components/choicesRow.js";
@@ -192,24 +193,13 @@ export class GamePageState {
             return null;
         }
 
-        const outcome: BirdNerdOutcome = {
-            guesses: this.guesses.length,
-            result: undefined,
-        };
+        const outcome = getGameOutcome(this.guesses, this.chances);
 
-        // If any of the guesses were all green, it's a win. We don't really care about which guess it was.
-        if (this.guesses.some(guess => guess.every(word => word.result === "correct"))) {
-            outcome.result = "won";
-            return outcome;
-        }
-
-        // We already know none of the guesses were all correct, so if we haven't run out of chances yet, there's no outcome.
-        if (this.guesses.length < this.chances) {
+        // We want outcome to return null if the game is still in progress.
+        if (!outcome.result) {
             return null;
         }
 
-        // We didn't win and we don't have any more chances, so we lost.
-        outcome.result = "lost";
         return outcome;
     }
     get overlay (): GameOverlay {

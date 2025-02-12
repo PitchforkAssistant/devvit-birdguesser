@@ -1,6 +1,13 @@
 import {RedisClient, TriggerContext} from "@devvit/public-api";
 
-export const LATEST_VERSION = 0;
+import {getAllBirdNerdGames} from "../server/birdNerdServer/birdNerdGame.server.js";
+import {getAllBirdNerdGuesses} from "../server/birdNerdServer/playerGuesses.server.js";
+import {userPlayedGamesKey} from "../server/birdNerdServer/redisKeys.server.js";
+import {AppSettings, getAppSettings} from "../settings.js";
+import {BirdNerdOutcome} from "../types/birdNerd/outcome.js";
+import {getGameOutcome} from "./outcome.js";
+
+export const LATEST_VERSION = 1;
 export const INSTALL_VERSION_KEY = "birdNerdSchemaVersion";
 
 export async function getInstalledVersion (redis: RedisClient): Promise<number> {
@@ -20,7 +27,36 @@ export async function getInstalledVersion (redis: RedisClient): Promise<number> 
     }
 }
 
-export async function migrate ({redis}: TriggerContext): Promise<void> {
+/**
+ * Copies existing games into an additional user-centric list of past games, intended to be used for things such as "Games Won: X" flairs
+ * @param redis Redis client
+ * @param appSettings App settings
+ */
+async function createUserGameLists (redis: RedisClient, appSettings: AppSettings): Promise<void> {
+    const allGames = await getAllBirdNerdGames(redis);
+
+    const allGameGuesses = await Promise.all(allGames.map(async game => {
+        const guesses = await getAllBirdNerdGuesses(redis, game.id);
+        return {game, playerEntries: guesses};
+    }));
+
+    const userGameLists: Record<string, Record<string, BirdNerdOutcome>> = {};
+    for (const {game, playerEntries} of allGameGuesses) {
+        for (const [userId, guesses] of Object.entries(playerEntries)) {
+            if (!userGameLists[userId]) {
+                userGameLists[userId] = {};
+            }
+            userGameLists[userId][game.id] = getGameOutcome(guesses, game.chances ?? appSettings.defaultChances);
+        }
+    }
+
+    for (const [userId, gameList] of Object.entries(userGameLists)) {
+        const redisGameEntries = Object.fromEntries(Object.entries(gameList).map(([gameId, outcome]) => [gameId, JSON.stringify(outcome)]));
+        await redis.hSet(`${userPlayedGamesKey}:${userId}`, redisGameEntries);
+    }
+}
+
+export async function migrate ({redis, settings}: TriggerContext): Promise<void> {
     const installedVersion = await getInstalledVersion(redis);
 
     if (installedVersion === LATEST_VERSION) {
@@ -34,7 +70,7 @@ export async function migrate ({redis}: TriggerContext): Promise<void> {
     switch (installedVersion) {
     case 0:
         // Future migration from version 0 to 1
-        // TODO: Based on the guesses stored for each game, create a hash of all played games for each user. games:user_id = {game_id: outcome}
+        await createUserGameLists(redis, await getAppSettings(settings));
     case 1:
         // Future migrations can be added as needed.
         console.log("No further migrations needed");

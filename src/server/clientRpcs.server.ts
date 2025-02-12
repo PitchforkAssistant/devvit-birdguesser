@@ -9,6 +9,7 @@ import {getAppSettings} from "../settings.js";
 import {BirdNerdGame} from "../types/birdNerd/game.js";
 import {BirdNerdGuess} from "../types/birdNerd/guess.js";
 import {BirdNerdGamePartial} from "../types/birdNerd/partialGame.js";
+import {getGameOutcome} from "../utils/outcome.js";
 import {getBirdNerdGame} from "./birdNerdServer/birdNerdGame.server.js";
 import {getBirdNerdGuesses, storeBirdNerdGuesses} from "./birdNerdServer/playerGuesses.server.js";
 import {getPostGame} from "./birdNerdServer/postGameLinks.server.js";
@@ -84,7 +85,7 @@ export async function makeBirdNerdGuess ({userId, postId, redis, settings}: Cont
         }
     });
 
-    await storeBirdNerdGuesses(redis, gameId, userId, [...existingGuesses || [], gameResult]);
+    await storeBirdNerdGuesses(redis, gameId, userId, [...existingGuesses || [], gameResult], getGameOutcome([...existingGuesses || [], gameResult], fullGame.chances ?? appSettings.defaultChances));
     return gameResult;
 }
 
@@ -108,7 +109,7 @@ export async function requestFullGame ({userId, postId, redis, settings}: Contex
         return null;
     }
 
-    if (guesses.some(guess => guess.every(word => word.result === "correct")) || guesses.length >= (fullGame.chances ?? appSettings.defaultChances)) {
+    if (getGameOutcome(guesses, fullGame.chances ?? appSettings.defaultChances).result) {
         return fullGame;
     }
     return null;
