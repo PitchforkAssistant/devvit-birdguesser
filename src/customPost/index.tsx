@@ -7,7 +7,6 @@ import {CustomPostState} from "./state.js";
 export const customPostExample = Devvit.addCustomPostType({
     name: "Custom Post Example",
     description: "An example of a custom post.",
-    height: "tall",
     render: context => {
         const state = new CustomPostState(context);
         return (
